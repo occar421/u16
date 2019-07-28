@@ -1,0 +1,13 @@
+{
+  "name": "u16",
+  "version": "0.1.0",
+  "description": "Experimental view library to realize 60fps(under 16ms to render) utilizes in TypeScript and generator.",
+  "main": "index.js",
+  "repository": "https://github.com/occar421/u16.git",
+  "author": "MasuqaT <occar@hotmail.co.jp>",
+  "license": "MIT",
+  "private": false,
+  "devDependencies": {
+    "typescript": "^3.6.0-beta"
+  }
+}
