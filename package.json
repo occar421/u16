@@ -7,7 +7,28 @@
   "author": "MasuqaT <occar@hotmail.co.jp>",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "start": "webpack-dev-server --mode=development"
+  },
   "devDependencies": {
-    "typescript": "^3.6.0-beta"
+    "@ampproject/worker-dom": "^0.16.0",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-typescript": "^7.3.3",
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
+    "babel-loader": "^8.0.6",
+    "copy-webpack-plugin": "^5.0.4",
+    "eslint": "^6.1.0",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "fork-ts-checker-webpack-plugin": "^1.5.0",
+    "prettier": "^1.18.2",
+    "typescript": "^3.6.0-beta",
+    "webpack": "^4.39.1",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.8.0",
+    "write-file-webpack-plugin": "^4.5.1"
   }
 }
