@@ -11,10 +11,12 @@ module.exports = {
     },
     project: "./tsconfig.json"
   },
+  plugins: ["react"],
   rules: {
     "@typescript-eslint/explicit-function-return-type": [
       "warn",
       { allowExpressions: true, allowTypedFunctionExpressions: true }
-    ]
+    ],
+    "react/jsx-uses-vars": "warn"
   }
 };
