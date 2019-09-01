@@ -1,36 +1,16 @@
 /** @jsx u */
-import { u as uOriginal } from "../index";
-
-// > for test
-// @ts-ignore
-// eslint-disable-next-line @typescript-eslint/no-namespace
-declare namespace u.JSX {
-  export import Element = uOriginal.JSX.Element;
-  // noinspection JSUnusedGlobalSymbols
-  interface IntrinsicElements {
-    foo: {
-      bar?: number;
-    };
-    fake: {
-      [key: string]: unknown;
-    };
-  }
-}
-// @ts-ignore
-// noinspection JSUnusedLocalSymbols
-const u = uOriginal;
-// < for test
+import { u } from "../index";
 
 describe("Intrinsic components", function() {
   describe("with simple usage", function() {
     it("simple one should wait once for the result", function() {
-      const c = <foo />;
+      const c = <div />;
 
       const result = c.next();
       expect(result.done).toBe(true);
       if (result.done) {
         expect(result.value).toStrictEqual({
-          tag: "foo",
+          tag: "div",
           attributes: {},
           children: []
         });
@@ -38,28 +18,28 @@ describe("Intrinsic components", function() {
     });
 
     it("1 arg one should wait once for the result", function() {
-      const c = <foo bar={1} />;
+      const c = <div id="1" />;
 
       const result = c.next();
       expect(result.done).toBe(true);
       if (result.done) {
         expect(result.value).toStrictEqual({
-          tag: "foo",
-          attributes: { bar: 1 },
+          tag: "div",
+          attributes: { id: "1" },
           children: []
         });
       }
     });
 
     it("1 string child one should wait once for the result", function() {
-      const c = <foo bar={1}>buz</foo>;
+      const c = <div id="1">buz</div>;
 
       const result = c.next();
       expect(result.done).toBe(true);
       if (result.done) {
         expect(result.value).toStrictEqual({
-          tag: "foo",
-          attributes: { bar: 1 },
+          tag: "div",
+          attributes: { id: "1" },
           children: ["buz"]
         });
       }
@@ -67,21 +47,21 @@ describe("Intrinsic components", function() {
 
     it("1 intrinsic child one should wait once for the result", function() {
       const c = (
-        <foo bar={1}>
-          <foo bar={2} />
-        </foo>
+        <div id="1">
+          <div id="2" />
+        </div>
       );
 
       const result = c.next();
       expect(result.done).toBe(true);
       if (result.done) {
         expect(result.value).toStrictEqual({
-          tag: "foo",
-          attributes: { bar: 1 },
+          tag: "div",
+          attributes: { id: "1" },
           children: [
             {
-              tag: "foo",
-              attributes: { bar: 2 },
+              tag: "div",
+              attributes: { id: "2" },
               children: []
             }
           ]
@@ -91,27 +71,27 @@ describe("Intrinsic components", function() {
 
     it("2 intrinsic children one should wait once for the result", function() {
       const c = (
-        <foo bar={1}>
-          <foo bar={2} />
-          <foo bar={3} />
-        </foo>
+        <div id="1">
+          <div id="2" />
+          <div id="3" />
+        </div>
       );
 
       const result = c.next();
       expect(result.done).toBe(true);
       if (result.done) {
         expect(result.value).toStrictEqual({
-          tag: "foo",
-          attributes: { bar: 1 },
+          tag: "div",
+          attributes: { id: "1" },
           children: [
             {
-              tag: "foo",
-              attributes: { bar: 2 },
+              tag: "div",
+              attributes: { id: "2" },
               children: []
             },
             {
-              tag: "foo",
-              attributes: { bar: 3 },
+              tag: "div",
+              attributes: { id: "3" },
               children: []
             }
           ]
@@ -124,14 +104,14 @@ describe("Intrinsic components", function() {
 function* ReturnsStringSimply({ foo }: { foo: string }): u.JSX.Element {
   return `~${foo}~`;
 }
-function* ReturnsElementSimply({ foo }: { foo: string }): u.JSX.Element {
-  return yield* <fake>{foo}</fake>;
+function* ReturnsSpanSimply({ foo }: { foo: string }): u.JSX.Element {
+  return yield* <span>{foo}</span>;
 }
-function* ReturnsElementWith1Yield({ foo }: { foo: string }): u.JSX.Element {
+function* ReturnsPreWith1Yield({ foo }: { foo: string }): u.JSX.Element {
   const [a] = yield ["bar"];
-  return yield* <fake>{`${a}-${foo}`}</fake>;
+  return yield* <pre>{`${a}-${foo}`}</pre>;
 }
-function* ReturnsElementWithChildren({
+function* ReturnsListsOrDivWithChildren({
   foo,
   children
 }: {
@@ -141,11 +121,11 @@ function* ReturnsElementWithChildren({
   if (children && children.length > 0) {
     const results = [];
     for (const c of children) {
-      results.push(yield* <fake className="sub">{yield* c}</fake>);
+      results.push(yield* <li>{yield* c}</li>);
     }
-    return yield* <fake className="root">{results}</fake>;
+    return yield* <ul>{results}</ul>;
   } else {
-    return yield* <fake className="root">{foo}</fake>;
+    return yield* <div>{foo}</div>;
   }
 }
 
@@ -161,13 +141,13 @@ describe("User-defined components", function() {
   });
 
   it("which returns element simply should wait twice for the result", function() {
-    const c = <ReturnsElementSimply foo="a" />;
+    const c = <ReturnsSpanSimply foo="a" />;
 
     let result = c.next();
     expect(result.done).toBe(true);
     if (result.done) {
       expect(result.value).toStrictEqual({
-        tag: "fake",
+        tag: "span",
         attributes: {},
         children: ["a"]
       });
@@ -175,17 +155,16 @@ describe("User-defined components", function() {
   });
 
   it("which returns element with one yield should wait twice for the result", function() {
-    const c = <ReturnsElementWith1Yield foo="a" />;
+    const c = <ReturnsPreWith1Yield foo="a" />;
 
     let result = c.next();
     expect(result.done).toBe(false);
     if (!result.done) {
-      expect(result.value).toStrictEqual(["bar"]);
       result = c.next([result.value]);
       expect(result.done).toBe(true);
       if (result.done) {
         expect(result.value).toStrictEqual({
-          tag: "fake",
+          tag: "pre",
           attributes: {},
           children: ["bar-a"]
         });
@@ -195,22 +174,22 @@ describe("User-defined components", function() {
 
   it("1 simple custom-component child one should wait once for the result", function() {
     const c = (
-      <ReturnsElementWithChildren foo="a">
+      <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsStringSimply foo="b" />
-      </ReturnsElementWithChildren>
+      </ReturnsListsOrDivWithChildren>
     );
 
     const result = c.next();
     expect(result.done).toBe(true);
     if (result.done) {
       expect(result.value).toStrictEqual({
-        tag: "fake",
-        attributes: { className: "root" },
+        tag: "ul",
+        attributes: {},
         children: [
           [
             {
-              tag: "fake",
-              attributes: { className: "sub" },
+              tag: "li",
+              attributes: {},
               children: ["~b~"]
             }
           ]
@@ -221,28 +200,28 @@ describe("User-defined components", function() {
 
   it("2 simple custom-component child one should wait once for the result", function() {
     const c = (
-      <ReturnsElementWithChildren foo="a">
+      <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsStringSimply foo="b" />
         <ReturnsStringSimply foo="c" />
-      </ReturnsElementWithChildren>
+      </ReturnsListsOrDivWithChildren>
     );
 
     const result = c.next();
     expect(result.done).toBe(true);
     if (result.done) {
       expect(result.value).toStrictEqual({
-        tag: "fake",
-        attributes: { className: "root" },
+        tag: "ul",
+        attributes: {},
         children: [
           [
             {
-              tag: "fake",
-              attributes: { className: "sub" },
+              tag: "li",
+              attributes: {},
               children: ["~b~"]
             },
             {
-              tag: "fake",
-              attributes: { className: "sub" },
+              tag: "li",
+              attributes: {},
               children: ["~c~"]
             }
           ]
@@ -253,9 +232,9 @@ describe("User-defined components", function() {
 
   it("1 custom-component with yield child one should wait twice for the result", function() {
     const c = (
-      <ReturnsElementWithChildren foo="a">
-        <ReturnsElementWith1Yield foo="b" />
-      </ReturnsElementWithChildren>
+      <ReturnsListsOrDivWithChildren foo="a">
+        <ReturnsPreWith1Yield foo="b" />
+      </ReturnsListsOrDivWithChildren>
     );
 
     let result = c.next();
@@ -265,16 +244,16 @@ describe("User-defined components", function() {
       expect(result.done).toBe(true);
       if (result.done) {
         expect(result.value).toStrictEqual({
-          tag: "fake",
-          attributes: { className: "root" },
+          tag: "ul",
+          attributes: {},
           children: [
             [
               {
-                tag: "fake",
-                attributes: { className: "sub" },
+                tag: "li",
+                attributes: {},
                 children: [
                   {
-                    tag: "fake",
+                    tag: "pre",
                     attributes: {},
                     children: ["bar-b"]
                   }
@@ -289,10 +268,10 @@ describe("User-defined components", function() {
 
   it("2 custom-component with yield child one should wait twice for the result", function() {
     const c = (
-      <ReturnsElementWithChildren foo="a">
-        <ReturnsElementWith1Yield foo="b" />
-        <ReturnsElementWith1Yield foo="c" />
-      </ReturnsElementWithChildren>
+      <ReturnsListsOrDivWithChildren foo="a">
+        <ReturnsPreWith1Yield foo="b" />
+        <ReturnsPreWith1Yield foo="c" />
+      </ReturnsListsOrDivWithChildren>
     );
 
     let result = c.next();
@@ -305,27 +284,27 @@ describe("User-defined components", function() {
         expect(result.done).toBe(true);
         if (result.done) {
           expect(result.value).toStrictEqual({
-            tag: "fake",
-            attributes: { className: "root" },
+            tag: "ul",
+            attributes: {},
             children: [
               [
                 {
-                  tag: "fake",
-                  attributes: { className: "sub" },
+                  tag: "li",
+                  attributes: {},
                   children: [
                     {
-                      tag: "fake",
+                      tag: "pre",
                       attributes: {},
                       children: ["bar-b"]
                     }
                   ]
                 },
                 {
-                  tag: "fake",
-                  attributes: { className: "sub" },
+                  tag: "li",
+                  attributes: {},
                   children: [
                     {
-                      tag: "fake",
+                      tag: "pre",
                       attributes: {},
                       children: ["bar-c"]
                     }

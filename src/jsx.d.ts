@@ -8,10 +8,22 @@ type VNode =
     }
   | string;
 
+interface HtmlCommon {
+  id?: string;
+}
+
 declare namespace JSXInternal {
   type Element = Generator<
     SomethingValueAndMetrics,
     VNode,
     SomethingValueAndOperationParameter
   >; // TODO internal path to return generated HTML element?
+
+  interface IntrinsicElements {
+    div: HtmlCommon;
+    span: HtmlCommon;
+    ul: HtmlCommon;
+    li: HtmlCommon;
+    pre: HtmlCommon;
+  }
 }
