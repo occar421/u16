@@ -1,3 +1,7 @@
+declare namespace Internal {
+  type Primitive = string | number;
+}
+
 type SomethingValueAndMetrics = [unknown]; // TODO
 type SomethingValueAndOperationParameter = [unknown]; // TODO
 type VNode =
@@ -6,10 +10,11 @@ type VNode =
       attributes: { [key: string]: unknown };
       children: VNode[]; // TODO change to Generator<VNode, undefined, T>?
     }
-  | string;
+  | Internal.Primitive;
 
 interface HtmlCommon {
   id?: string;
+  children?: Internal.Primitive | Element[];
 }
 
 declare namespace JSXInternal {
@@ -26,4 +31,6 @@ declare namespace JSXInternal {
     li: HtmlCommon;
     pre: HtmlCommon;
   }
+
+  type Primitive = Internal.Primitive;
 }
