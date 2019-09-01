@@ -1,5 +1,11 @@
 declare namespace Internal {
   type Primitive = string | number;
+
+  type Children = Generator<
+    VNode,
+    undefined /* TODO */,
+    SomethingValueAndOperationParameter /* TODO change */
+  >;
 }
 
 type SomethingValueAndMetrics = [unknown]; // TODO
@@ -8,7 +14,7 @@ type VNode =
   | {
       tag: string;
       attributes: { [key: string]: unknown };
-      children: VNode[]; // TODO change to Generator<VNode, undefined, T>?
+      children: Internal.Children;
     }
   | Internal.Primitive;
 
@@ -33,4 +39,5 @@ declare namespace JSXInternal {
   }
 
   type Primitive = Internal.Primitive;
+  type Children = Internal.Children;
 }

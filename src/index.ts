@@ -15,6 +15,27 @@ function checkIfGenerator(
   return arg[Symbol.toStringTag] === "Generator";
 }
 
+function* normalizeGenerator(
+  childElements: (u.JSX.Primitive | u.JSX.Element)[]
+): u.JSX.Children {
+  for (const child of childElements) {
+    if (checkIfGenerator(child)) {
+      while (true) {
+        const current = child.next(); // do something here?
+        if (current.done) {
+          yield current.value;
+          break;
+        }
+      }
+    } else if (Array.isArray(child)) {
+      yield* normalizeGenerator(child);
+    } else {
+      yield child;
+    }
+  }
+  return;
+}
+
 export function* u(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: string | u.Component<any[]>,
@@ -36,20 +57,14 @@ export function* u(
       throw Error("Type of `component` is invalid.");
     }
   } else if (typeof component === "string") {
-    const children = [];
-    for (let e of childElements) {
-      if (checkIfGenerator(e)) {
-        const result = yield* e;
-        children.push(result);
-      } else {
-        children.push(e);
-      }
-    }
-    return { tag: component, attributes, children };
+    return {
+      tag: component,
+      attributes,
+      children: normalizeGenerator(childElements)
+    };
   } else {
     throw Error("Type of `component` is invalid.");
   }
-  // TODO normalize children tree
 }
 
 function testStringify(node: VNode): string {
@@ -58,11 +73,20 @@ function testStringify(node: VNode): string {
   } else if (typeof node === "number") {
     return node.toString();
   } else {
+    const children = node.children;
+    const strings = [];
+    let prev = undefined;
+    while (true) {
+      const current = children.next([prev]);
+      if (!current.done) {
+        strings.push(testStringify(current.value));
+      } else {
+        break;
+      }
+    }
     return `<${node.tag} ${Object.entries(node.attributes || {}).map(
       e => `${e[0]}="${e[1]}"`
-    )}>${(node.children || []).map(c => testStringify(c)).join("")}</${
-      node.tag
-    }>`;
+    )}>${strings.join("")}</${node.tag}>`;
   }
 }
 

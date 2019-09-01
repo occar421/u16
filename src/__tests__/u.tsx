@@ -8,12 +8,14 @@ describe("Intrinsic components", function() {
 
       const result = c.next();
       expect(result.done).toBe(true);
-      if (result.done) {
-        expect(result.value).toStrictEqual({
-          tag: "div",
-          attributes: {},
-          children: []
-        });
+      if (result.done && typeof result.value === "object") {
+        expect(result.value.tag).toBe("div");
+        expect(result.value.attributes).toStrictEqual({});
+        const child = result.value.children.next();
+        expect(child.done).toBe(true);
+        expect(child.value).toBeUndefined();
+      } else {
+        throw new Error("failed");
       }
     });
 
@@ -22,12 +24,13 @@ describe("Intrinsic components", function() {
 
       const result = c.next();
       expect(result.done).toBe(true);
-      if (result.done) {
-        expect(result.value).toStrictEqual({
-          tag: "div",
-          attributes: { id: "1" },
-          children: []
-        });
+      if (result.done && typeof result.value === "object") {
+        expect(result.value.tag).toBe("div");
+        expect(result.value.attributes).toStrictEqual({ id: "1" });
+        const child = result.value.children.next();
+        expect(child.done).toBe(true);
+      } else {
+        throw new Error("failed");
       }
     });
 
@@ -36,12 +39,16 @@ describe("Intrinsic components", function() {
 
       const result = c.next();
       expect(result.done).toBe(true);
-      if (result.done) {
-        expect(result.value).toStrictEqual({
-          tag: "div",
-          attributes: { id: "1" },
-          children: ["buz"]
-        });
+      if (result.done && typeof result.value === "object") {
+        expect(result.value.tag).toBe("div");
+        expect(result.value.attributes).toStrictEqual({ id: "1" });
+        let child = result.value.children.next();
+        expect(child.done).toBe(false);
+        expect(child.value).toBe("buz");
+        child = result.value.children.next();
+        expect(child.done).toBe(true);
+      } else {
+        throw new Error("failed");
       }
     });
 
@@ -54,18 +61,23 @@ describe("Intrinsic components", function() {
 
       const result = c.next();
       expect(result.done).toBe(true);
-      if (result.done) {
-        expect(result.value).toStrictEqual({
-          tag: "div",
-          attributes: { id: "1" },
-          children: [
-            {
-              tag: "div",
-              attributes: { id: "2" },
-              children: []
-            }
-          ]
-        });
+      if (result.done && typeof result.value === "object") {
+        expect(result.value.tag).toBe("div");
+        expect(result.value.attributes).toStrictEqual({ id: "1" });
+        let child = result.value.children.next();
+        expect(child.done).toBe(false);
+        if (!child.done && typeof child.value === "object") {
+          expect(child.value.tag).toBe("div");
+          expect(child.value.attributes).toStrictEqual({ id: "2" });
+          const grandchild = child.value.children.next();
+          expect(grandchild.done).toBe(true);
+        } else {
+          throw new Error("failed");
+        }
+        child = result.value.children.next();
+        expect(child.done).toBe(true);
+      } else {
+        throw new Error("failed");
       }
     });
 
@@ -79,23 +91,33 @@ describe("Intrinsic components", function() {
 
       const result = c.next();
       expect(result.done).toBe(true);
-      if (result.done) {
-        expect(result.value).toStrictEqual({
-          tag: "div",
-          attributes: { id: "1" },
-          children: [
-            {
-              tag: "div",
-              attributes: { id: "2" },
-              children: []
-            },
-            {
-              tag: "div",
-              attributes: { id: "3" },
-              children: []
-            }
-          ]
-        });
+      if (result.done && typeof result.value === "object") {
+        expect(result.value.tag).toBe("div");
+        expect(result.value.attributes).toStrictEqual({ id: "1" });
+        let child = result.value.children.next();
+        expect(child.done).toBe(false);
+        if (!child.done && typeof child.value === "object") {
+          expect(child.value.tag).toBe("div");
+          expect(child.value.attributes).toStrictEqual({ id: "2" });
+          const grandchild = child.value.children.next();
+          expect(grandchild.done).toBe(true);
+        } else {
+          throw new Error("failed");
+        }
+        child = result.value.children.next();
+        expect(child.done).toBe(false);
+        if (!child.done && typeof child.value === "object") {
+          expect(child.value.tag).toBe("div");
+          expect(child.value.attributes).toStrictEqual({ id: "3" });
+          const grandchild = child.value.children.next();
+          expect(grandchild.done).toBe(true);
+        } else {
+          throw new Error("failed");
+        }
+        child = result.value.children.next();
+        expect(child.done).toBe(true);
+      } else {
+        throw new Error("failed");
       }
     });
   });
@@ -119,9 +141,9 @@ function* ReturnsListsOrDivWithChildren({
   children?: u.JSX.Element[];
 }): u.JSX.Element {
   if (children && children.length > 0) {
-    const results = [];
+    const results: u.JSX.Element[] = [];
     for (const c of children) {
-      results.push(yield* <li>{yield* c}</li>);
+      results.push(<li>{yield* c}</li>);
     }
     return yield* <ul>{results}</ul>;
   } else {
@@ -137,20 +159,26 @@ describe("User-defined components", function() {
     expect(result.done).toBe(true);
     if (result.done) {
       expect(result.value).toBe("~a~");
+    } else {
+      throw new Error("failed");
     }
   });
 
   it("which returns element simply should wait twice for the result", function() {
     const c = <ReturnsSpanSimply foo="a" />;
 
-    let result = c.next();
+    const result = c.next();
     expect(result.done).toBe(true);
-    if (result.done) {
-      expect(result.value).toStrictEqual({
-        tag: "span",
-        attributes: {},
-        children: ["a"]
-      });
+    if (result.done && typeof result.value === "object") {
+      expect(result.value.tag).toBe("span");
+      expect(result.value.attributes).toStrictEqual({});
+      let child = result.value.children.next();
+      expect(child.done).toBe(false);
+      expect(child.value).toBe("a");
+      child = result.value.children.next();
+      expect(child.done).toBe(true);
+    } else {
+      throw new Error("failed");
     }
   });
 
@@ -162,13 +190,19 @@ describe("User-defined components", function() {
     if (!result.done) {
       result = c.next([result.value]);
       expect(result.done).toBe(true);
-      if (result.done) {
-        expect(result.value).toStrictEqual({
-          tag: "pre",
-          attributes: {},
-          children: ["bar-a"]
-        });
+      if (result.done && typeof result.value === "object") {
+        expect(result.value.tag).toBe("pre");
+        expect(result.value.attributes).toStrictEqual({});
+        let child = result.value.children.next();
+        expect(child.done).toBe(false);
+        expect(child.value).toBe("bar-a");
+        child = result.value.children.next();
+        expect(child.done).toBe(true);
+      } else {
+        throw new Error("failed");
       }
+    } else {
+      throw new Error("failed");
     }
   });
 
@@ -181,20 +215,26 @@ describe("User-defined components", function() {
 
     const result = c.next();
     expect(result.done).toBe(true);
-    if (result.done) {
-      expect(result.value).toStrictEqual({
-        tag: "ul",
-        attributes: {},
-        children: [
-          [
-            {
-              tag: "li",
-              attributes: {},
-              children: ["~b~"]
-            }
-          ]
-        ]
-      });
+    if (result.done && typeof result.value === "object") {
+      expect(result.value.tag).toBe("ul");
+      expect(result.value.attributes).toStrictEqual({});
+      let child = result.value.children.next();
+      expect(child.done).toBe(false);
+      if (!child.done && typeof child.value === "object") {
+        expect(child.value.tag).toBe("li");
+        expect(child.value.attributes).toStrictEqual({});
+        let grandchild = child.value.children.next();
+        expect(grandchild.done).toBe(false);
+        expect(grandchild.value).toBe("~b~");
+        grandchild = child.value.children.next();
+        expect(grandchild.done).toBe(true);
+      } else {
+        throw new Error("failed");
+      }
+      child = result.value.children.next();
+      expect(child.done).toBe(true);
+    } else {
+      throw new Error("failed");
     }
   });
 
@@ -208,25 +248,39 @@ describe("User-defined components", function() {
 
     const result = c.next();
     expect(result.done).toBe(true);
-    if (result.done) {
-      expect(result.value).toStrictEqual({
-        tag: "ul",
-        attributes: {},
-        children: [
-          [
-            {
-              tag: "li",
-              attributes: {},
-              children: ["~b~"]
-            },
-            {
-              tag: "li",
-              attributes: {},
-              children: ["~c~"]
-            }
-          ]
-        ]
-      });
+    if (result.done && typeof result.value === "object") {
+      expect(result.value.tag).toBe("ul");
+      expect(result.value.attributes).toStrictEqual({});
+      let child = result.value.children.next();
+      expect(child.done).toBe(false);
+      if (!child.done && typeof child.value === "object") {
+        expect(child.value.tag).toBe("li");
+        expect(child.value.attributes).toStrictEqual({});
+        let grandchild = child.value.children.next();
+        expect(grandchild.done).toBe(false);
+        expect(grandchild.value).toBe("~b~");
+        grandchild = child.value.children.next();
+        expect(grandchild.done).toBe(true);
+      } else {
+        throw new Error("failed");
+      }
+      child = result.value.children.next();
+      expect(child.done).toBe(false);
+      if (!child.done && typeof child.value === "object") {
+        expect(child.value.tag).toBe("li");
+        expect(child.value.attributes).toStrictEqual({});
+        let grandchild = child.value.children.next();
+        expect(grandchild.done).toBe(false);
+        expect(grandchild.value).toBe("~c~");
+        grandchild = child.value.children.next();
+        expect(grandchild.done).toBe(true);
+      } else {
+        throw new Error("failed");
+      }
+      child = result.value.children.next();
+      expect(child.done).toBe(true);
+    } else {
+      throw new Error("failed");
     }
   });
 
@@ -242,27 +296,39 @@ describe("User-defined components", function() {
     if (!result.done) {
       result = c.next([result.value]);
       expect(result.done).toBe(true);
-      if (result.done) {
-        expect(result.value).toStrictEqual({
-          tag: "ul",
-          attributes: {},
-          children: [
-            [
-              {
-                tag: "li",
-                attributes: {},
-                children: [
-                  {
-                    tag: "pre",
-                    attributes: {},
-                    children: ["bar-b"]
-                  }
-                ]
-              }
-            ]
-          ]
-        });
+      if (result.done && typeof result.value === "object") {
+        expect(result.value.tag).toBe("ul");
+        expect(result.value.attributes).toStrictEqual({});
+        let child = result.value.children.next();
+        expect(child.done).toBe(false);
+        if (!child.done && typeof child.value === "object") {
+          expect(child.value.tag).toBe("li");
+          expect(child.value.attributes).toStrictEqual({});
+          let grandchild = child.value.children.next();
+          expect(grandchild.done).toBe(false);
+          if (!grandchild.done && typeof grandchild.value === "object") {
+            expect(grandchild.value.tag).toBe("pre");
+            expect(grandchild.value.attributes).toStrictEqual({});
+            let grandgrandchild = grandchild.value.children.next();
+            expect(grandgrandchild.done).toBe(false);
+            expect(grandgrandchild.value).toBe("bar-b");
+            grandgrandchild = grandchild.value.children.next();
+            expect(grandgrandchild.done).toBe(true);
+          } else {
+            throw new Error("failed");
+          }
+          grandchild = child.value.children.next();
+          expect(grandchild.done).toBe(true);
+        } else {
+          throw new Error("failed");
+        }
+        child = result.value.children.next();
+        expect(child.done).toBe(true);
+      } else {
+        throw new Error("failed");
       }
+    } else {
+      throw new Error("failed");
     }
   });
 
@@ -279,42 +345,64 @@ describe("User-defined components", function() {
     if (!result.done) {
       result = c.next([result.value]);
       expect(result.done).toBe(false);
-      if (!result.done) {
-        result = c.next([result.value]);
-        expect(result.done).toBe(true);
-        if (result.done) {
-          expect(result.value).toStrictEqual({
-            tag: "ul",
-            attributes: {},
-            children: [
-              [
-                {
-                  tag: "li",
-                  attributes: {},
-                  children: [
-                    {
-                      tag: "pre",
-                      attributes: {},
-                      children: ["bar-b"]
-                    }
-                  ]
-                },
-                {
-                  tag: "li",
-                  attributes: {},
-                  children: [
-                    {
-                      tag: "pre",
-                      attributes: {},
-                      children: ["bar-c"]
-                    }
-                  ]
-                }
-              ]
-            ]
-          });
+      result = c.next([result.value]);
+      expect(result.done).toBe(true);
+      if (result.done && typeof result.value === "object") {
+        expect(result.value.tag).toBe("ul");
+        expect(result.value.attributes).toStrictEqual({});
+        let child = result.value.children.next();
+        expect(child.done).toBe(false);
+        if (!child.done && typeof child.value === "object") {
+          expect(child.value.tag).toBe("li");
+          expect(child.value.attributes).toStrictEqual({});
+          let grandchild = child.value.children.next();
+          expect(grandchild.done).toBe(false);
+          if (!grandchild.done && typeof grandchild.value === "object") {
+            expect(grandchild.value.tag).toBe("pre");
+            expect(grandchild.value.attributes).toStrictEqual({});
+            let grandgrandchild = grandchild.value.children.next();
+            expect(grandgrandchild.done).toBe(false);
+            expect(grandgrandchild.value).toBe("bar-b");
+            grandgrandchild = grandchild.value.children.next();
+            expect(grandgrandchild.done).toBe(true);
+          } else {
+            throw new Error("failed");
+          }
+          grandchild = child.value.children.next();
+          expect(grandchild.done).toBe(true);
+        } else {
+          throw new Error("failed");
         }
+        child = result.value.children.next();
+        expect(child.done).toBe(false);
+        if (!child.done && typeof child.value === "object") {
+          expect(child.value.tag).toBe("li");
+          expect(child.value.attributes).toStrictEqual({});
+          let grandchild = child.value.children.next();
+          expect(grandchild.done).toBe(false);
+          if (!grandchild.done && typeof grandchild.value === "object") {
+            expect(grandchild.value.tag).toBe("pre");
+            expect(grandchild.value.attributes).toStrictEqual({});
+            let grandgrandchild = grandchild.value.children.next();
+            expect(grandgrandchild.done).toBe(false);
+            expect(grandgrandchild.value).toBe("bar-c");
+            grandgrandchild = grandchild.value.children.next();
+            expect(grandgrandchild.done).toBe(true);
+          } else {
+            throw new Error("failed");
+          }
+          grandchild = child.value.children.next();
+          expect(grandchild.done).toBe(true);
+        } else {
+          throw new Error("failed");
+        }
+        child = result.value.children.next();
+        expect(child.done).toBe(true);
+      } else {
+        throw new Error("failed");
       }
+    } else {
+      throw new Error("failed");
     }
   });
 });
