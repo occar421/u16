@@ -3,7 +3,9 @@ export declare namespace u {
   export import JSX = JSXInternal;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type Component<T extends any[]> = ((...args: T) => u.JSX.Element) & {
+  type Component<T extends {}> = ((
+    props: T & { children?: (u.JSX.Primitive | u.JSX.Element)[] }
+  ) => u.JSX.Element) & {
     name: string;
   };
 }
@@ -13,6 +15,10 @@ function checkIfGenerator(
 ): arg is Generator<unknown, unknown, unknown> {
   // @ts-ignore
   return arg[Symbol.toStringTag] === "Generator";
+}
+
+export function isPrimitive(arg: unknown): arg is u.JSX.Primitive {
+  return typeof arg === "string" || typeof arg === "number";
 }
 
 function* normalizeGenerator(
@@ -38,13 +44,10 @@ function* normalizeGenerator(
 
 export function* u(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  component: string | u.Component<any[]>,
+  component: string | u.Component<{}>,
   attributesArg: { [key: string]: unknown }, // need to be able to be generator?
   ...childElements: (u.JSX.Primitive | u.JSX.Element)[]
 ): u.JSX.Element {
-  const name = typeof component === "string" ? component : component.name;
-  console.debug(name, attributesArg);
-
   const attributes = attributesArg || {};
   if (typeof component === "function") {
     const content = component({
@@ -68,9 +71,7 @@ export function* u(
 }
 
 function testStringify(node: VNode): string {
-  if (typeof node === "string") {
-    return node;
-  } else if (typeof node === "number") {
+  if (isPrimitive(node)) {
     return node.toString();
   } else {
     const children = node.children;

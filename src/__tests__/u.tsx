@@ -1,5 +1,5 @@
 /** @jsx u */
-import { u } from "../index";
+import { isPrimitive, u } from "../index";
 
 describe("Intrinsic components", function() {
   describe("with simple usage", function() {
@@ -123,33 +123,34 @@ describe("Intrinsic components", function() {
   });
 });
 
-function* ReturnsStringSimply({ foo }: { foo: string }): u.JSX.Element {
+const ReturnsStringSimply: u.Component<{ foo: string }> = function*({ foo }) {
   return `~${foo}~`;
-}
-function* ReturnsSpanSimply({ foo }: { foo: string }): u.JSX.Element {
+};
+const ReturnsSpanSimply: u.Component<{ foo: string }> = function*({ foo }) {
   return yield* <span>{foo}</span>;
-}
-function* ReturnsPreWith1Yield({ foo }: { foo: string }): u.JSX.Element {
+};
+const ReturnsPreWith1Yield: u.Component<{ foo: string }> = function*({ foo }) {
   const [a] = yield ["bar"];
   return yield* <pre>{`${a}-${foo}`}</pre>;
-}
-function* ReturnsListsOrDivWithChildren({
+};
+const ReturnsListsOrDivWithChildren: u.Component<{ foo: string }> = function*({
   foo,
   children
-}: {
-  foo: string;
-  children?: u.JSX.Element[];
-}): u.JSX.Element {
+}) {
   if (children && children.length > 0) {
     const results: u.JSX.Element[] = [];
     for (const c of children) {
-      results.push(<li>{yield* c}</li>);
+      if (isPrimitive(c)) {
+        results.push(<li>{yield [c]}</li>);
+      } else {
+        results.push(<li>{yield* c}</li>);
+      }
     }
     return yield* <ul>{results}</ul>;
   } else {
     return yield* <div>{foo}</div>;
   }
-}
+};
 
 describe("User-defined components", function() {
   it("which returns string simply should wait once for the result", function() {
