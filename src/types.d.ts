@@ -6,6 +6,12 @@ declare namespace Internal {
     undefined /* TODO */,
     SomethingValueAndOperationParameter /* TODO change */
   >;
+
+  type Component<T extends {}> = ((
+    props: T & { children?: (JSXInternal.Primitive | JSXInternal.Element)[] }
+  ) => JSXInternal.Element) & {
+    name: string;
+  };
 }
 
 type SomethingValueAndMetrics = [unknown]; // TODO
