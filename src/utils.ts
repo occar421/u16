@@ -11,9 +11,8 @@ export function isPrimitive(arg: unknown): arg is u.JSX.Primitive {
   return typeof arg === "string" || typeof arg === "number";
 }
 
-// TODO tests and ensure it flattens gen<gen<T>>, gen<T[]>, gen<T>[], T[][]
 export function* normalizeGenerator(
-  childElements: (u.JSX.Primitive | u.JSX.Element)[]
+  childElements: Internal.ChildrenInJsx
 ): u.JSX.Children {
   for (const child of childElements) {
     if (isGenerator(child)) {
@@ -32,3 +31,17 @@ export function* normalizeGenerator(
   }
   return;
 }
+
+// TODO? util map function for:
+//     for (const c of children) {
+//       if (isPrimitive(c)) {
+//         results.push(<li>{yield [c]}</li>);
+//       } else if (Array.isArray(c)) {
+//         results.push(<li>???</li>);
+//       } else {
+//         results.push(<li>{yield* c}</li>);
+//       }
+//     }
+//  to:
+//  children |> map(?, function* (c) { return <li>{yield [c]}</li>; });
+//  other than normalizeGenerator

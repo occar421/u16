@@ -20,6 +20,9 @@ const ReturnsListsOrDivWithChildren: u.Component<{ foo: string }> = function*({
     for (const c of children) {
       if (isPrimitive(c)) {
         results.push(<li>{yield [c]}</li>);
+      } else if (Array.isArray(c)) {
+        // results.push(<li></li>);
+        // FIXME: ignore case in UnitTest
       } else {
         results.push(<li>{yield* c}</li>);
       }

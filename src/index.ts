@@ -13,7 +13,7 @@ import { _u } from "./u";
 export function* u(
   component: string | u.Component<{}>,
   attributesArg: { [key: string]: unknown }, // need to be able to be generator?
-  ...childElements: (u.JSX.Primitive | u.JSX.Element)[]
+  ...childElements: Internal.ChildrenInJsx
 ): u.JSX.Element {
   // delegates only
   return yield* _u(component, attributesArg, ...childElements);

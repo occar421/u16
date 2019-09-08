@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface DeepArray<T> extends Array<T | DeepArray<T>> {}
+
 declare namespace Internal {
   type Primitive = string | number;
 
@@ -7,8 +10,10 @@ declare namespace Internal {
     SomethingValueAndOperationParameter /* TODO change */
   >;
 
+  type ChildrenInJsx = DeepArray<JSXInternal.Primitive | JSXInternal.Element>;
+
   type Component<T extends {}> = ((
-    props: T & { children?: (JSXInternal.Primitive | JSXInternal.Element)[] }
+    props: T & { children?: ChildrenInJsx }
   ) => JSXInternal.Element) & {
     name: string;
   };
