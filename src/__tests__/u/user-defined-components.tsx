@@ -1,5 +1,5 @@
 /** @jsx u */
-import { isPrimitive, u } from "../../index";
+import { u } from "../../index";
 
 const ReturnsStringSimply: u.Component<{ foo: string }> = function*({ foo }) {
   return `~${foo}~`;
@@ -15,17 +15,19 @@ const ReturnsListsOrDivWithChildren: u.Component<{ foo: string }> = function*({
   foo,
   children
 }) {
-  if (children && children.length > 0) {
+  if (children) {
     const results: u.JSX.Element[] = [];
-    for (const c of children) {
-      if (isPrimitive(c)) {
-        results.push(<li>{yield [c]}</li>);
-      } else if (Array.isArray(c)) {
-        // results.push(<li></li>);
-        // FIXME: ignore case in UnitTest
-      } else {
-        results.push(<li>{yield* c}</li>);
+    let value = undefined;
+    while (true) {
+      const c = children.next([value]);
+      if (c.done) {
+        break;
       }
+      if ("node" in c.value) {
+        results.push(<li>{c.value.node}</li>);
+      }
+      value = c.value;
+      yield [value];
     }
     return yield* <ul>{results}</ul>;
   } else {
@@ -39,7 +41,7 @@ const ReturnsUserDefinedElement: u.Component<{ foo: string }> = function*({
 };
 
 describe("User-defined components", function() {
-  it("which returns string simply should wait once for the result", function() {
+  it("which returns string simply", function() {
     const c = <ReturnsStringSimply foo="a" />;
 
     const result = c.next();
@@ -51,7 +53,7 @@ describe("User-defined components", function() {
     }
   });
 
-  it("which returns element simply should wait twice for the result", function() {
+  it("which returns element simply", function() {
     const c = <ReturnsSpanSimply foo="a" />;
 
     const result = c.next();
@@ -69,7 +71,7 @@ describe("User-defined components", function() {
     }
   });
 
-  it("which returns element with one yield should wait twice for the result", function() {
+  it("which returns element with one yield", function() {
     const c = <ReturnsPreWith1Yield foo="a" />;
 
     let result = c.next();
@@ -93,14 +95,16 @@ describe("User-defined components", function() {
     }
   });
 
-  it("1 simple custom-component child one should wait once for the result", function() {
+  it("1 simple custom-component child", function() {
     const c = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsStringSimply foo="b" />
       </ReturnsListsOrDivWithChildren>
     );
 
-    const result = c.next();
+    let result = c.next();
+    expect(result.done).toBe(false);
+    result = c.next();
     expect(result.done).toBe(true);
     if (result.done && typeof result.value === "object") {
       expect(result.value.tag).toBe("ul");
@@ -130,7 +134,7 @@ describe("User-defined components", function() {
     }
   });
 
-  it("2 simple custom-component child one should wait once for the result", function() {
+  it("2 simple custom-component children", function() {
     const c = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsStringSimply foo="b" />
@@ -138,7 +142,11 @@ describe("User-defined components", function() {
       </ReturnsListsOrDivWithChildren>
     );
 
-    const result = c.next();
+    let result = c.next();
+    expect(result.done).toBe(false);
+    result = c.next();
+    expect(result.done).toBe(false);
+    result = c.next();
     expect(result.done).toBe(true);
     if (result.done && typeof result.value === "object") {
       expect(result.value.tag).toBe("ul");
@@ -186,7 +194,7 @@ describe("User-defined components", function() {
     }
   });
 
-  it("1 custom-component with yield child one should wait twice for the result", function() {
+  it("1 custom-component with yielding child", function() {
     const c = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsPreWith1Yield foo="b" />
@@ -196,6 +204,8 @@ describe("User-defined components", function() {
     let result = c.next();
     expect(result.done).toBe(false);
     if (!result.done) {
+      result = c.next([result.value]);
+      expect(result.done).toBe(false);
       result = c.next([result.value]);
       expect(result.done).toBe(true);
       if (result.done && typeof result.value === "object") {
@@ -244,7 +254,7 @@ describe("User-defined components", function() {
     }
   });
 
-  it("2 custom-component with yield child one should wait twice for the result", function() {
+  it("2 custom-component with yielding children", function() {
     const c = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsPreWith1Yield foo="b" />
@@ -255,6 +265,10 @@ describe("User-defined components", function() {
     let result = c.next();
     expect(result.done).toBe(false);
     if (!result.done) {
+      result = c.next([result.value]);
+      expect(result.done).toBe(false);
+      result = c.next([result.value]);
+      expect(result.done).toBe(false);
       result = c.next([result.value]);
       expect(result.done).toBe(false);
       result = c.next([result.value]);
@@ -282,11 +296,11 @@ describe("User-defined components", function() {
             const node = grandchild.value.node;
             expect(node.tag).toBe("pre");
             expect(node.attributes).toStrictEqual({});
-            let grandgrandchild = node.children.next();
-            expect(grandgrandchild.done).toBe(false);
-            expect(grandgrandchild.value).toStrictEqual({ node: "bar-b" });
-            grandgrandchild = node.children.next();
-            expect(grandgrandchild.done).toBe(true);
+            let greatGrandchild = node.children.next();
+            expect(greatGrandchild.done).toBe(false);
+            expect(greatGrandchild.value).toStrictEqual({ node: "bar-b" });
+            greatGrandchild = node.children.next();
+            expect(greatGrandchild.done).toBe(true);
           } else {
             throw new Error("failed");
           }
@@ -338,7 +352,7 @@ describe("User-defined components", function() {
     }
   });
 
-  it("which returns custom-component should behave like the content", function() {
+  it("which returns custom-component", function() {
     const c = <ReturnsUserDefinedElement foo="a" />;
 
     const result = c.next();

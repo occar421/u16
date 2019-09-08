@@ -8,7 +8,8 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "start": "webpack-dev-server --mode=development"
+    "start": "webpack-dev-server --mode=development",
+    "test:unit": "jest"
   },
   "devDependencies": {
     "@ampproject/worker-dom": "^0.16.0",

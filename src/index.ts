@@ -5,8 +5,6 @@ export declare namespace u {
   export import Component = Internal.Component;
 }
 
-export { isPrimitive } from "./utils";
-
 import { _u } from "./u";
 
 // export const u = _u;

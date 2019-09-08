@@ -7,7 +7,7 @@ declare namespace Internal {
   type ChildrenInJsx = DeepArray<JSXInternal.Primitive | JSXInternal.Element>;
 
   type Component<T extends {} = {}> = ((
-    props: T & { children?: ChildrenInJsx }
+    props: T & { children?: VirtualInternal.VChildren }
   ) => JSXInternal.Element) & {
     name: string;
   };
