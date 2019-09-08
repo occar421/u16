@@ -29,6 +29,11 @@ const ReturnsListsOrDivWithChildren: u.Component<{ foo: string }> = function*({
     return yield* <div>{foo}</div>;
   }
 };
+const ReturnsUserDefinedElement: u.Component<{ foo: string }> = function*({
+  foo
+}) {
+  return yield* <ReturnsSpanSimply foo={foo} />;
+};
 
 describe("User-defined components", function() {
   it("which returns string simply should wait once for the result", function() {
@@ -280,6 +285,24 @@ describe("User-defined components", function() {
       } else {
         throw new Error("failed");
       }
+    } else {
+      throw new Error("failed");
+    }
+  });
+
+  it("which returns custom-component should behave like the content", function() {
+    const c = <ReturnsUserDefinedElement foo="a" />;
+
+    const result = c.next();
+    expect(result.done).toBe(true);
+    if (result.done && typeof result.value === "object") {
+      expect(result.value.tag).toBe("span");
+      expect(result.value.attributes).toStrictEqual({});
+      let child = result.value.children.next();
+      expect(child.done).toBe(false);
+      expect(child.value).toBe("a");
+      child = result.value.children.next();
+      expect(child.done).toBe(true);
     } else {
       throw new Error("failed");
     }
