@@ -1,4 +1,5 @@
 /** @jsx u */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { u } from "../../index";
 
 describe("Intrinsic components", function() {
@@ -44,7 +45,7 @@ describe("Intrinsic components", function() {
         expect(result.value.attributes).toStrictEqual({ id: "1" });
         let child = result.value.children.next();
         expect(child.done).toBe(false);
-        expect(child.value).toBe("buz");
+        expect(child.value).toStrictEqual({ node: "buz" });
         child = result.value.children.next();
         expect(child.done).toBe(true);
       } else {
@@ -66,10 +67,15 @@ describe("Intrinsic components", function() {
         expect(result.value.attributes).toStrictEqual({ id: "1" });
         let child = result.value.children.next();
         expect(child.done).toBe(false);
-        if (!child.done && typeof child.value === "object") {
-          expect(child.value.tag).toBe("div");
-          expect(child.value.attributes).toStrictEqual({ id: "2" });
-          const grandchild = child.value.children.next();
+        if (
+          !child.done &&
+          "node" in child.value &&
+          typeof child.value.node === "object"
+        ) {
+          const node = child.value.node;
+          expect(node.tag).toBe("div");
+          expect(node.attributes).toStrictEqual({ id: "2" });
+          const grandchild = node.children.next();
           expect(grandchild.done).toBe(true);
         } else {
           throw new Error("failed");
@@ -96,20 +102,30 @@ describe("Intrinsic components", function() {
         expect(result.value.attributes).toStrictEqual({ id: "1" });
         let child = result.value.children.next();
         expect(child.done).toBe(false);
-        if (!child.done && typeof child.value === "object") {
-          expect(child.value.tag).toBe("div");
-          expect(child.value.attributes).toStrictEqual({ id: "2" });
-          const grandchild = child.value.children.next();
+        if (
+          !child.done &&
+          "node" in child.value &&
+          typeof child.value.node === "object"
+        ) {
+          const node = child.value.node;
+          expect(node.tag).toBe("div");
+          expect(node.attributes).toStrictEqual({ id: "2" });
+          const grandchild = node.children.next();
           expect(grandchild.done).toBe(true);
         } else {
           throw new Error("failed");
         }
         child = result.value.children.next();
         expect(child.done).toBe(false);
-        if (!child.done && typeof child.value === "object") {
-          expect(child.value.tag).toBe("div");
-          expect(child.value.attributes).toStrictEqual({ id: "3" });
-          const grandchild = child.value.children.next();
+        if (
+          !child.done &&
+          "node" in child.value &&
+          typeof child.value.node === "object"
+        ) {
+          const node = child.value.node;
+          expect(node.tag).toBe("div");
+          expect(node.attributes).toStrictEqual({ id: "3" });
+          const grandchild = node.children.next();
           expect(grandchild.done).toBe(true);
         } else {
           throw new Error("failed");

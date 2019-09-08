@@ -16,23 +16,29 @@ export function* normalizeGenerator(
 ): u.JSX.Children {
   for (const child of childElements) {
     if (isGenerator(child)) {
+      let value = undefined;
       while (true) {
-        const current = child.next(); // do something here?
+        const current = child.next([value]); // do something here?
         if (current.done) {
-          yield current.value;
+          // yield current.value;
+          yield { node: current.value };
           break;
         }
+        value = current.value[0];
+        yield { report: { value } }; // TODO impl report
       }
     } else if (Array.isArray(child)) {
       yield* normalizeGenerator(child);
     } else {
-      yield child;
+      // yield child;
+      yield { node: child };
     }
   }
   return;
 }
 
 // TODO? util map function for:
+//   children: ? | undefined
 //     for (const c of children) {
 //       if (isPrimitive(c)) {
 //         results.push(<li>{yield [c]}</li>);

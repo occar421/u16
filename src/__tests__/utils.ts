@@ -20,31 +20,31 @@ describe("normalizeGenerator", function() {
 
     let current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(1);
+    expect(current.value).toStrictEqual({ node: 1 });
 
     current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(2);
+    expect(current.value).toStrictEqual({ node: 2 });
 
     current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(3);
+    expect(current.value).toStrictEqual({ node: 3 });
 
     current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(4);
+    expect(current.value).toStrictEqual({ node: 4 });
 
     current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(5);
+    expect(current.value).toStrictEqual({ node: 5 });
 
     current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(6);
+    expect(current.value).toStrictEqual({ node: 6 });
 
     current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(7);
+    expect(current.value).toStrictEqual({ node: 7 });
 
     current = result.next();
     expect(current.done).toBe(true);
@@ -59,15 +59,15 @@ describe("normalizeGenerator", function() {
 
     let current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(1);
+    expect(current.value).toStrictEqual({ node: 1 });
 
     current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(2);
+    expect(current.value).toStrictEqual({ node: 2 });
 
     current = result.next();
     expect(current.done).toBe(false);
-    expect(current.value).toBe(3);
+    expect(current.value).toStrictEqual({ node: 3 });
 
     current = result.next();
     expect(current.done).toBe(true);

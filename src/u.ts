@@ -9,7 +9,7 @@ export function* _u(
   if (typeof component === "function") {
     const content = component({
       ...attributes,
-      children: childElements // TODO: children: normalizeGenerator(childElements) ? component composition?
+      children: childElements // TODO normalizeGenerator(childElements)
     });
     if (isGenerator(content)) {
       return yield* content;

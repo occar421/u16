@@ -1,6 +1,6 @@
 import { isPrimitive, u } from "./index";
 
-function testStringify(node: VNode): string {
+function testStringify(node: VirtualInternal.VNode): string {
   if (isPrimitive(node)) {
     return node.toString();
   } else {
@@ -9,10 +9,10 @@ function testStringify(node: VNode): string {
     let prev = undefined;
     while (true) {
       const current = children.next([prev]);
-      if (!current.done) {
-        strings.push(testStringify(current.value));
-      } else {
+      if (current.done) {
         break;
+      } else if ("node" in current.value) {
+        strings.push(testStringify(current.value.node));
       }
     }
     return `<${node.tag} ${Object.entries(node.attributes || {}).map(
