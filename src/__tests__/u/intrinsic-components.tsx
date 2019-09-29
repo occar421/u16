@@ -49,7 +49,7 @@ describe("Intrinsic components", function() {
     it("1 string child", function() {
       const rootElGen = <div id="1">buz</div>;
       //{`gen`| values: [], return: { tag: "div", attributes: { "id": "1" }, children: {`gen`| values: [
-      //  { node: "buz" }
+      //  "buz"
       //], return: ! } } }
 
       const rootElGenResult = rootElGen.next();
@@ -61,12 +61,12 @@ describe("Intrinsic components", function() {
         expect(rootEl.attributes).toStrictEqual({ id: "1" });
         const childrenGen = rootEl.children;
         //{`gen`| values: [
-        //  { node: "buz" }
+        //  "buz"
         //], return: ! }
 
         let childrenGenResult = childrenGen.next();
         expect(childrenGenResult.done).toBe(false);
-        expect(childrenGenResult.value).toStrictEqual({ node: "buz" });
+        expect(childrenGenResult.value).toBe("buz");
 
         childrenGenResult = childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
@@ -82,7 +82,7 @@ describe("Intrinsic components", function() {
         </div>
       );
       //{`gen`| values: [], return: { tag: "div", attributes: { "id": "1" }, children: {`gen`| values: [
-      //  { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`| values: [], return: ! } } } }
+      //  {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`| values: [], return: ! } } }
       //], return: ! } } }
 
       const rootElGenResult = rootElGen.next();
@@ -94,17 +94,16 @@ describe("Intrinsic components", function() {
         expect(rootEl.attributes).toStrictEqual({ id: "1" });
         const childrenGen = rootEl.children;
         //{`gen`| values: [
-        //  { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } } }
+        //  {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
         //], return: ! }
 
         let childrenGenResult = childrenGen.next();
         expect(childrenGenResult.done).toBe(false);
         if (
           !childrenGenResult.done &&
-          "node" in childrenGenResult.value &&
-          typeof childrenGenResult.value.node === "object"
+          typeof childrenGenResult.value === "object"
         ) {
-          const childElGen = childrenGenResult.value.node;
+          const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
 
           const childElGenResult = childElGen.next();
@@ -145,8 +144,8 @@ describe("Intrinsic components", function() {
         </div>
       );
       //{`gen`| values: [], return: { tag: "div", attributes: { "id": "1" }, children: {`gen`| values: [
-      //  { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`| values: [], return: ! } } } },
-      //  { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`| values: [], return: ! } } } }
+      //  {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`| values: [], return: ! } } },
+      //  {`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`| values: [], return: ! } } }
       //], return: ! } } }
 
       const rootElGenResult = rootElGen.next();
@@ -158,18 +157,17 @@ describe("Intrinsic components", function() {
         expect(rootEl.attributes).toStrictEqual({ id: "1" });
         const childrenGen = rootEl.children;
         //{`gen`| values: [
-        //  { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } } },
-        //  { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`} } } }
+        //  {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } },
+        //  {`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`} } }
         //]
 
         let childrenGenResult = childrenGen.next();
         expect(childrenGenResult.done).toBe(false);
         if (
           !childrenGenResult.done &&
-          "node" in childrenGenResult.value &&
-          typeof childrenGenResult.value.node === "object"
+          typeof childrenGenResult.value === "object"
         ) {
-          const childElGen = childrenGenResult.value.node;
+          const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
 
           const childElGenResult = childElGen.next();
@@ -199,10 +197,9 @@ describe("Intrinsic components", function() {
         expect(childrenGenResult.done).toBe(false);
         if (
           !childrenGenResult.done &&
-          "node" in childrenGenResult.value &&
-          typeof childrenGenResult.value.node === "object"
+          typeof childrenGenResult.value === "object"
         ) {
-          const childElGen = childrenGenResult.value.node;
+          const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`} } }
 
           const childElGenResult = childElGen.next();
@@ -242,9 +239,9 @@ describe("Intrinsic components", function() {
         </div>
       );
       //{`gen`| values: [], return: { tag: "div", attributes: { "id": "1" }, children: {`gen`| values: [
-      //  { node: { `gen` values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`| values: [
-      //    { node: "buz" }
-      //  ], return: ! } } } }
+      //  { `gen` values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`| values: [
+      //    "buz"
+      //  ], return: ! } } }
       //], return: ! } } }
 
       const rootElGenResult = rootElGen.next();
@@ -256,17 +253,16 @@ describe("Intrinsic components", function() {
         expect(rootEl.attributes).toStrictEqual({ id: "1" });
         const childrenGen = rootEl.children;
         //{`gen`| values: [
-        //  { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } } },
+        //  {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } },
         //]
 
         let childrenGenResult = childrenGen.next();
         expect(childrenGenResult.done).toBe(false);
         if (
           !childrenGenResult.done &&
-          "node" in childrenGenResult.value &&
-          typeof childrenGenResult.value.node === "object"
+          typeof childrenGenResult.value === "object"
         ) {
-          const childElGen = childrenGenResult.value.node;
+          const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
 
           const childElGenResult = childElGen.next();
@@ -282,12 +278,12 @@ describe("Intrinsic components", function() {
 
             const grandchildrenGen = childEl.children;
             //{`gen`| values: [
-            //  { node: "buz" }
+            //  "buz"
             //], return: ! }
 
             let grandchildrenGenResult = grandchildrenGen.next();
             expect(grandchildrenGenResult.done).toBe(false);
-            expect(grandchildrenGenResult.value).toStrictEqual({ node: "buz" });
+            expect(grandchildrenGenResult.value).toBe("buz");
 
             grandchildrenGenResult = grandchildrenGen.next();
             expect(grandchildrenGenResult.done).toBe(true);
@@ -314,9 +310,9 @@ describe("Intrinsic components", function() {
         </div>
       );
       //{`gen`| values: [], return: { tag: "div", attributes: { "id": "1" }, children: {`gen`| values: [
-      //  { node: { `gen` values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`| values: [
-      //    { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`| values: [], return: ! } } } }
-      //  ], return: ! } } } }
+      //  { `gen` values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`| values: [
+      //    {`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`| values: [], return: ! } } }
+      //  ], return: ! } } }
       //], return: ! } } }
 
       const rootElGenResult = rootElGen.next();
@@ -328,17 +324,16 @@ describe("Intrinsic components", function() {
         expect(rootEl.attributes).toStrictEqual({ id: "1" });
         const childrenGen = rootEl.children;
         //{`gen`| values: [
-        //  { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } } },
+        //  {`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
         //]
 
         let childrenGenResult = childrenGen.next();
         expect(childrenGenResult.done).toBe(false);
         if (
           !childrenGenResult.done &&
-          "node" in childrenGenResult.value &&
-          typeof childrenGenResult.value.node === "object"
+          typeof childrenGenResult.value === "object"
         ) {
-          const childElGen = childrenGenResult.value.node;
+          const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
 
           const childElGenResult = childElGen.next();
@@ -354,17 +349,16 @@ describe("Intrinsic components", function() {
 
             const grandchildrenGen = childEl.children;
             //{`gen`| values: [
-            //  { node: {`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`} } } }
+            //  {`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`} } }
             //], return: ! }
 
             let grandchildrenGenResult = grandchildrenGen.next();
             expect(grandchildrenGenResult.done).toBe(false);
             if (
               !grandchildrenGenResult.done &&
-              "node" in grandchildrenGenResult.value &&
-              typeof grandchildrenGenResult.value.node === "object"
+              typeof grandchildrenGenResult.value === "object"
             ) {
-              const grandchildElGen = grandchildrenGenResult.value.node;
+              const grandchildElGen = grandchildrenGenResult.value;
               //{`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`} } }
 
               const grandchildElGenResult = grandchildElGen.next();
