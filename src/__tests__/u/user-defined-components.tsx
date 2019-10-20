@@ -1,5 +1,5 @@
 /** @jsx u */
-import { u } from "../../index";
+import { u, map } from "../../index";
 
 const ReturnsStringSimply: u.Component<{ foo: string }> = function*({ foo }) {
   return `~${foo}~`;
@@ -16,20 +16,7 @@ const ReturnsListsOrDivWithChildren: u.Component<{ foo: string }> = function*({
   children
 }) {
   if (children) {
-    const results: u.JSX.Element[] = [];
-    let value = undefined;
-    while (true) {
-      const c = children.next([value]);
-      if (c.done) {
-        break;
-      }
-      if ("node" in c.value) {
-        results.push(<li>{c.value.node}</li>);
-      }
-      value = c.value;
-      yield [value];
-    }
-    return yield* <ul>{results}</ul>;
+    return yield* <ul>{map(([c]) => <li>{c}</li>)(children)}</ul>;
   } else {
     return yield* <div>{foo}</div>;
   }
@@ -42,51 +29,73 @@ const ReturnsUserDefinedElement: u.Component<{ foo: string }> = function*({
 
 describe("User-defined components", function() {
   it("which returns string simply", function() {
-    const c = <ReturnsStringSimply foo="a" />;
+    const rootElGen = <ReturnsStringSimply foo="a" />;
+    //{`gen`| values: [], return: "~a~" }
 
-    const result = c.next();
-    expect(result.done).toBe(true);
-    if (result.done) {
-      expect(result.value).toBe("~a~");
-    } else {
-      throw new Error("failed");
-    }
+    const rootElGenResult = rootElGen.next();
+    expect(rootElGenResult.done).toBe(true);
+    expect(rootElGenResult.value).toBe("~a~");
   });
 
   it("which returns element simply", function() {
-    const c = <ReturnsSpanSimply foo="a" />;
+    const rootElGen = <ReturnsSpanSimply foo="a" />;
+    //{`gen`| values: [], return: { tag: "span", attributes: {}, children: {`gen`| values: [
+    //  "a"
+    //], return: ! }
 
-    const result = c.next();
-    expect(result.done).toBe(true);
-    if (result.done && typeof result.value === "object") {
-      expect(result.value.tag).toBe("span");
-      expect(result.value.attributes).toStrictEqual({});
-      let child = result.value.children.next();
-      expect(child.done).toBe(false);
-      expect(child.value).toStrictEqual({ node: "a" });
-      child = result.value.children.next();
-      expect(child.done).toBe(true);
+    const rootElGenResult = rootElGen.next();
+    expect(rootElGenResult.done).toBe(true);
+    if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      const rootEl = rootElGenResult.value;
+      //{ tag: "div", attributes: {}, children: {`gen`} }
+      expect(rootEl.tag).toBe("span");
+      expect(rootEl.attributes).toStrictEqual({});
+      const childrenGen = rootEl.children;
+      //{`gen`| values: [
+      //  "a"
+      //], return: ! }
+
+      let childrenGenResult = childrenGen.next();
+      expect(childrenGenResult.done).toBe(false);
+      expect(childrenGenResult.value).toBe("a");
+
+      childrenGenResult = childrenGen.next();
+      expect(childrenGenResult.done).toBe(true);
     } else {
       throw new Error("failed");
     }
   });
 
   it("which returns element with one yield", function() {
-    const c = <ReturnsPreWith1Yield foo="a" />;
+    const rootElGen = <ReturnsPreWith1Yield foo="a" />;
+    //{`gen`| values: [
+    //  ["bar"]
+    //], return: { tag: "pre", attributes: {}, children: {`gen`| values: [
+    //  "bar-a"
+    //]}
 
-    let result = c.next();
-    expect(result.done).toBe(false);
-    if (!result.done) {
-      result = c.next([result.value]);
-      expect(result.done).toBe(true);
-      if (result.done && typeof result.value === "object") {
-        expect(result.value.tag).toBe("pre");
-        expect(result.value.attributes).toStrictEqual({});
-        let child = result.value.children.next();
-        expect(child.done).toBe(false);
-        expect(child.value).toStrictEqual({ node: "bar-a" });
-        child = result.value.children.next();
-        expect(child.done).toBe(true);
+    let rootElGenResult = rootElGen.next();
+    expect(rootElGenResult.done).toBe(false);
+    if (!rootElGenResult.done) {
+      expect(rootElGenResult.value).toStrictEqual(["bar"]);
+      rootElGenResult = rootElGen.next([rootElGenResult.value]);
+      expect(rootElGenResult.done).toBe(true);
+      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+        const rootEl = rootElGenResult.value;
+        //{ tag: "pre", attributes: {}, children: {`gen`} }
+        expect(rootEl.tag).toBe("pre");
+        expect(rootEl.attributes).toStrictEqual({});
+        const childrenGen = rootEl.children;
+        //{`gen`| values: [
+        //  "bar-a"
+        //], return: ! }
+
+        let childrenGenResult = childrenGen.next();
+        expect(childrenGenResult.done).toBe(false);
+        expect(childrenGenResult.value).toBe("bar-a");
+
+        childrenGenResult = childrenGen.next();
+        expect(childrenGenResult.done).toBe(true);
       } else {
         throw new Error("failed");
       }
@@ -95,278 +104,144 @@ describe("User-defined components", function() {
     }
   });
 
+  function areIdentical(
+    elGenActual: u.JSX.Element,
+    elGenExpected: u.JSX.Element
+  ): void {
+    let elGenResultActual = elGenActual.next();
+    let elGenResultExpected = elGenExpected.next();
+    expect(elGenResultActual.done).toBe(elGenResultExpected.done);
+    while (!elGenResultActual.done) {
+      // @ts-ignore
+      expect(elGenResultActual.value).toStrictEqual(elGenResultExpected.value);
+      elGenResultActual = elGenActual.next();
+      elGenResultExpected = elGenExpected.next();
+      expect(elGenResultActual.done).toBe(elGenResultExpected.done);
+    }
+
+    expect(typeof elGenResultActual.value).toBe(typeof elGenResultActual.value);
+    if (typeof elGenResultActual.value !== "object") {
+      expect(elGenResultActual.value).toBe(elGenResultExpected.value);
+      return;
+    }
+
+    const elActual = elGenResultActual.value;
+    // @ts-ignore
+    const elExpected: typeof elActual = elGenResultExpected.value;
+    expect(elActual.tag).toBe(elExpected.tag);
+    expect(elActual.attributes).toStrictEqual(elExpected.attributes);
+
+    const childrenGenActual = elActual.children;
+    const childrenGenExpected = elExpected.children;
+
+    let childrenGenResultActual = childrenGenActual.next();
+    let childrenGenResultExpected = childrenGenExpected.next();
+    expect(childrenGenResultActual.done).toBe(childrenGenResultActual.done);
+    while (!childrenGenResultActual.done) {
+      expect(typeof childrenGenResultActual.value).toBe(
+        typeof childrenGenResultExpected.value
+      );
+      if (typeof childrenGenResultActual.value === "object") {
+        areIdentical(
+          childrenGenResultActual.value,
+          childrenGenResultExpected.value
+        );
+      } else {
+        expect(childrenGenResultActual.value).toBe(
+          childrenGenResultExpected.value
+        );
+      }
+      childrenGenResultActual = childrenGenActual.next();
+      childrenGenResultExpected = childrenGenExpected.next();
+      expect(childrenGenResultActual.done).toBe(childrenGenResultActual.done);
+    }
+  }
+
   it("1 simple custom-component child", function() {
-    const c = (
+    const actual = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsStringSimply foo="b" />
       </ReturnsListsOrDivWithChildren>
     );
 
-    let result = c.next();
-    expect(result.done).toBe(false);
-    result = c.next();
-    expect(result.done).toBe(true);
-    if (result.done && typeof result.value === "object") {
-      expect(result.value.tag).toBe("ul");
-      expect(result.value.attributes).toStrictEqual({});
-      let child = result.value.children.next();
-      expect(child.done).toBe(false);
-      if (
-        !child.done &&
-        "node" in child.value &&
-        typeof child.value.node === "object"
-      ) {
-        const node = child.value.node;
-        expect(node.tag).toBe("li");
-        expect(node.attributes).toStrictEqual({});
-        let grandchild = node.children.next();
-        expect(grandchild.done).toBe(false);
-        expect(grandchild.value).toStrictEqual({ node: "~b~" });
-        grandchild = node.children.next();
-        expect(grandchild.done).toBe(true);
-      } else {
-        throw new Error("failed");
-      }
-      child = result.value.children.next();
-      expect(child.done).toBe(true);
-    } else {
-      throw new Error("failed");
-    }
+    const expected = (
+      <ul>
+        <li>
+          <ReturnsStringSimply foo="b" />
+        </li>
+      </ul>
+    );
+
+    areIdentical(actual, expected);
   });
 
   it("2 simple custom-component children", function() {
-    const c = (
+    const actual = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsStringSimply foo="b" />
         <ReturnsStringSimply foo="c" />
       </ReturnsListsOrDivWithChildren>
     );
 
-    let result = c.next();
-    expect(result.done).toBe(false);
-    result = c.next();
-    expect(result.done).toBe(false);
-    result = c.next();
-    expect(result.done).toBe(true);
-    if (result.done && typeof result.value === "object") {
-      expect(result.value.tag).toBe("ul");
-      expect(result.value.attributes).toStrictEqual({});
-      let child = result.value.children.next();
-      expect(child.done).toBe(false);
-      if (
-        !child.done &&
-        "node" in child.value &&
-        typeof child.value.node === "object"
-      ) {
-        const node = child.value.node;
-        expect(node.tag).toBe("li");
-        expect(node.attributes).toStrictEqual({});
-        let grandchild = node.children.next();
-        expect(grandchild.done).toBe(false);
-        expect(grandchild.value).toStrictEqual({ node: "~b~" });
-        grandchild = node.children.next();
-        expect(grandchild.done).toBe(true);
-      } else {
-        throw new Error("failed");
-      }
-      child = result.value.children.next();
-      expect(child.done).toBe(false);
-      if (
-        !child.done &&
-        "node" in child.value &&
-        typeof child.value.node === "object"
-      ) {
-        const node = child.value.node;
-        expect(node.tag).toBe("li");
-        expect(node.attributes).toStrictEqual({});
-        let grandchild = node.children.next();
-        expect(grandchild.done).toBe(false);
-        expect(grandchild.value).toStrictEqual({ node: "~c~" });
-        grandchild = node.children.next();
-        expect(grandchild.done).toBe(true);
-      } else {
-        throw new Error("failed");
-      }
-      child = result.value.children.next();
-      expect(child.done).toBe(true);
-    } else {
-      throw new Error("failed");
-    }
+    const expected = (
+      <ul>
+        <li>
+          <ReturnsStringSimply foo="b" />
+        </li>
+        <li>
+          <ReturnsStringSimply foo="c" />
+        </li>
+      </ul>
+    );
+
+    areIdentical(actual, expected);
   });
 
   it("1 custom-component with yielding child", function() {
-    const c = (
+    const actual = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsPreWith1Yield foo="b" />
       </ReturnsListsOrDivWithChildren>
     );
 
-    let result = c.next();
-    expect(result.done).toBe(false);
-    if (!result.done) {
-      result = c.next([result.value]);
-      expect(result.done).toBe(false);
-      result = c.next([result.value]);
-      expect(result.done).toBe(true);
-      if (result.done && typeof result.value === "object") {
-        expect(result.value.tag).toBe("ul");
-        expect(result.value.attributes).toStrictEqual({});
-        let child = result.value.children.next();
-        expect(child.done).toBe(false);
-        if (
-          !child.done &&
-          "node" in child.value &&
-          typeof child.value.node === "object"
-        ) {
-          const node = child.value.node;
-          expect(node.tag).toBe("li");
-          expect(node.attributes).toStrictEqual({});
-          let grandchild = node.children.next();
-          expect(grandchild.done).toBe(false);
-          if (
-            !grandchild.done &&
-            "node" in grandchild.value &&
-            typeof grandchild.value.node === "object"
-          ) {
-            const node = grandchild.value.node;
-            expect(node.tag).toBe("pre");
-            expect(node.attributes).toStrictEqual({});
-            let greatGrandchild = node.children.next();
-            expect(greatGrandchild.done).toBe(false);
-            expect(greatGrandchild.value).toStrictEqual({ node: "bar-b" });
-            greatGrandchild = node.children.next();
-            expect(greatGrandchild.done).toBe(true);
-          } else {
-            throw new Error("failed");
-          }
-          grandchild = node.children.next();
-          expect(grandchild.done).toBe(true);
-        } else {
-          throw new Error("failed");
-        }
-        child = result.value.children.next();
-        expect(child.done).toBe(true);
-      } else {
-        throw new Error("failed");
-      }
-    } else {
-      throw new Error("failed");
-    }
+    const expected = (
+      <ul>
+        <li>
+          <ReturnsStringSimply foo="b" />
+        </li>
+      </ul>
+    );
+
+    areIdentical(actual, expected);
   });
 
   it("2 custom-component with yielding children", function() {
-    const c = (
+    const actual = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsPreWith1Yield foo="b" />
         <ReturnsPreWith1Yield foo="c" />
       </ReturnsListsOrDivWithChildren>
     );
 
-    let result = c.next();
-    expect(result.done).toBe(false);
-    if (!result.done) {
-      result = c.next([result.value]);
-      expect(result.done).toBe(false);
-      result = c.next([result.value]);
-      expect(result.done).toBe(false);
-      result = c.next([result.value]);
-      expect(result.done).toBe(false);
-      result = c.next([result.value]);
-      expect(result.done).toBe(true);
-      if (result.done && typeof result.value === "object") {
-        expect(result.value.tag).toBe("ul");
-        expect(result.value.attributes).toStrictEqual({});
-        let child = result.value.children.next();
-        expect(child.done).toBe(false);
-        if (
-          !child.done &&
-          "node" in child.value &&
-          typeof child.value.node === "object"
-        ) {
-          const node = child.value.node;
-          expect(node.tag).toBe("li");
-          expect(node.attributes).toStrictEqual({});
-          let grandchild = node.children.next();
-          expect(grandchild.done).toBe(false);
-          if (
-            !grandchild.done &&
-            "node" in grandchild.value &&
-            typeof grandchild.value.node === "object"
-          ) {
-            const node = grandchild.value.node;
-            expect(node.tag).toBe("pre");
-            expect(node.attributes).toStrictEqual({});
-            let greatGrandchild = node.children.next();
-            expect(greatGrandchild.done).toBe(false);
-            expect(greatGrandchild.value).toStrictEqual({ node: "bar-b" });
-            greatGrandchild = node.children.next();
-            expect(greatGrandchild.done).toBe(true);
-          } else {
-            throw new Error("failed");
-          }
-          grandchild = node.children.next();
-          expect(grandchild.done).toBe(true);
-        } else {
-          throw new Error("failed");
-        }
-        child = result.value.children.next();
-        expect(child.done).toBe(false);
-        if (
-          !child.done &&
-          "node" in child.value &&
-          typeof child.value.node === "object"
-        ) {
-          const node = child.value.node;
-          expect(node.tag).toBe("li");
-          expect(node.attributes).toStrictEqual({});
-          let grandchild = node.children.next();
-          expect(grandchild.done).toBe(false);
-          if (
-            !grandchild.done &&
-            "node" in grandchild.value &&
-            typeof grandchild.value.node === "object"
-          ) {
-            const node = grandchild.value.node;
-            expect(node.tag).toBe("pre");
-            expect(node.attributes).toStrictEqual({});
-            let greatGrandchild = node.children.next();
-            expect(greatGrandchild.done).toBe(false);
-            expect(greatGrandchild.value).toStrictEqual({ node: "bar-c" });
-            greatGrandchild = node.children.next();
-            expect(greatGrandchild.done).toBe(true);
-          } else {
-            throw new Error("failed");
-          }
-          grandchild = node.children.next();
-          expect(grandchild.done).toBe(true);
-        } else {
-          throw new Error("failed");
-        }
-        child = result.value.children.next();
-        expect(child.done).toBe(true);
-      } else {
-        throw new Error("failed");
-      }
-    } else {
-      throw new Error("failed");
-    }
+    const expected = (
+      <ul>
+        <li>
+          <ReturnsStringSimply foo="b" />
+        </li>
+        <li>
+          <ReturnsStringSimply foo="c" />
+        </li>
+      </ul>
+    );
+
+    areIdentical(actual, expected);
   });
 
   it("which returns custom-component", function() {
-    const c = <ReturnsUserDefinedElement foo="a" />;
+    const actual = <ReturnsUserDefinedElement foo="a" />;
 
-    const result = c.next();
-    expect(result.done).toBe(true);
-    if (result.done && typeof result.value === "object") {
-      expect(result.value.tag).toBe("span");
-      expect(result.value.attributes).toStrictEqual({});
-      let child = result.value.children.next();
-      expect(child.done).toBe(false);
-      expect(child.value).toStrictEqual({ node: "a" });
-      child = result.value.children.next();
-      expect(child.done).toBe(true);
-    } else {
-      throw new Error("failed");
-    }
+    const expected = <ReturnsSpanSimply foo="a" />;
+
+    areIdentical(actual, expected);
   });
 });
