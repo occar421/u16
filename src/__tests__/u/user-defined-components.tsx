@@ -1,49 +1,54 @@
 /** @jsx u */
 import { u, map } from "../../index";
 
-const ReturnsStringSimply: u.Component<{ foo: string }> = function*({ foo }) {
+const ReturnsStringSimply: u.Component<{ foo: string }> = async function*({
+  foo
+}) {
   return `~${foo}~`;
 };
-const ReturnsSpanSimply: u.Component<{ foo: string }> = function*({ foo }) {
+const ReturnsSpanSimply: u.Component<{ foo: string }> = async function*({
+  foo
+}) {
   return yield* <span>{foo}</span>;
 };
-const ReturnsPreWith1Yield: u.Component<{ foo: string }> = function*({ foo }) {
+const ReturnsPreWith1Yield: u.Component<{ foo: string }> = async function*({
+  foo
+}) {
   const [a] = yield ["bar"];
   return yield* <pre>{`${a}-${foo}`}</pre>;
 };
-const ReturnsListsOrDivWithChildren: u.Component<{ foo: string }> = function*({
-  foo,
-  children
-}) {
+const ReturnsListsOrDivWithChildren: u.Component<{
+  foo: string;
+}> = async function*({ foo, children }) {
   if (children) {
     return yield* <ul>{map(([c]) => <li>{c}</li>)(children)}</ul>;
   } else {
     return yield* <div>{foo}</div>;
   }
 };
-const ReturnsUserDefinedElement: u.Component<{ foo: string }> = function*({
-  foo
-}) {
+const ReturnsUserDefinedElement: u.Component<{
+  foo: string;
+}> = async function*({ foo }) {
   return yield* <ReturnsSpanSimply foo={foo} />;
 };
 
 describe("User-defined components", function() {
-  it("which returns string simply", function() {
+  it("which returns string simply", async function() {
     const rootElGen = <ReturnsStringSimply foo="a" />;
     //{`gen`| values: [], return: "~a~" }
 
-    const rootElGenResult = rootElGen.next();
+    const rootElGenResult = await rootElGen.next();
     expect(rootElGenResult.done).toBe(true);
     expect(rootElGenResult.value).toBe("~a~");
   });
 
-  it("which returns element simply", function() {
+  it("which returns element simply", async function() {
     const rootElGen = <ReturnsSpanSimply foo="a" />;
     //{`gen`| values: [], return: { tag: "span", attributes: {}, children: {`gen`| values: [
     //  "a"
     //], return: ! }
 
-    const rootElGenResult = rootElGen.next();
+    const rootElGenResult = await rootElGen.next();
     expect(rootElGenResult.done).toBe(true);
     if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
       const rootEl = rootElGenResult.value;
@@ -55,18 +60,18 @@ describe("User-defined components", function() {
       //  "a"
       //], return: ! }
 
-      let childrenGenResult = childrenGen.next();
+      let childrenGenResult = await childrenGen.next();
       expect(childrenGenResult.done).toBe(false);
       expect(childrenGenResult.value).toBe("a");
 
-      childrenGenResult = childrenGen.next();
+      childrenGenResult = await childrenGen.next();
       expect(childrenGenResult.done).toBe(true);
     } else {
       throw new Error("failed");
     }
   });
 
-  it("which returns element with one yield", function() {
+  it("which returns element with one yield", async function() {
     const rootElGen = <ReturnsPreWith1Yield foo="a" />;
     //{`gen`| values: [
     //  ["bar"]
@@ -74,11 +79,11 @@ describe("User-defined components", function() {
     //  "bar-a"
     //]}
 
-    let rootElGenResult = rootElGen.next();
+    let rootElGenResult = await rootElGen.next();
     expect(rootElGenResult.done).toBe(false);
     if (!rootElGenResult.done) {
       expect(rootElGenResult.value).toStrictEqual(["bar"]);
-      rootElGenResult = rootElGen.next([rootElGenResult.value]);
+      rootElGenResult = await rootElGen.next([rootElGenResult.value]);
       expect(rootElGenResult.done).toBe(true);
       if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
         const rootEl = rootElGenResult.value;
@@ -90,11 +95,11 @@ describe("User-defined components", function() {
         //  "bar-a"
         //], return: ! }
 
-        let childrenGenResult = childrenGen.next();
+        let childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(false);
         expect(childrenGenResult.value).toBe("bar-a");
 
-        childrenGenResult = childrenGen.next();
+        childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
       } else {
         throw new Error("failed");
@@ -114,30 +119,30 @@ describe("User-defined components", function() {
     return { type: "yield-sim", el, yields };
   }
 
-  function areIdenticalInSimulation(
+  async function areIdenticalInSimulation(
     elGenActual: u.JSX.Element,
     elGenExpectedArg: u.JSX.Element | YieldSim
-  ): void {
+  ): Promise<void> {
     const elGenExpected =
       "type" in elGenExpectedArg && elGenExpectedArg.type === "yield-sim"
-        ? (function*() {
+        ? (async function*() {
             yield* elGenExpectedArg.yields;
             return yield* elGenExpectedArg.el;
           })()
         : (elGenExpectedArg as u.JSX.Element);
 
     let valueActual = undefined;
-    let elGenResultActual = elGenActual.next([valueActual]);
+    let elGenResultActual = await elGenActual.next([valueActual]);
     let valueExpected = undefined;
-    let elGenResultExpected = elGenExpected.next([valueExpected]);
+    let elGenResultExpected = await elGenExpected.next([valueExpected]);
     expect(elGenResultActual.done).toBe(elGenResultExpected.done);
     while (!elGenResultActual.done) {
       valueActual = elGenResultActual.value;
       valueExpected = elGenResultExpected.value;
       // @ts-ignore
       expect(valueActual).toStrictEqual(valueExpected);
-      elGenResultActual = elGenActual.next([valueActual]);
-      elGenResultExpected = elGenExpected.next([valueExpected]);
+      elGenResultActual = await elGenActual.next([valueActual]);
+      elGenResultExpected = await elGenExpected.next([valueExpected]);
       expect(elGenResultActual.done).toBe(elGenResultExpected.done);
     }
 
@@ -156,15 +161,15 @@ describe("User-defined components", function() {
     const childrenGenActual = elActual.children;
     const childrenGenExpected = elExpected.children;
 
-    let childrenGenResultActual = childrenGenActual.next();
-    let childrenGenResultExpected = childrenGenExpected.next();
+    let childrenGenResultActual = await childrenGenActual.next();
+    let childrenGenResultExpected = await childrenGenExpected.next();
     expect(childrenGenResultActual.done).toBe(childrenGenResultActual.done);
     while (!childrenGenResultActual.done) {
       expect(typeof childrenGenResultActual.value).toBe(
         typeof childrenGenResultExpected.value
       );
       if (typeof childrenGenResultActual.value === "object") {
-        areIdenticalInSimulation(
+        await areIdenticalInSimulation(
           childrenGenResultActual.value,
           childrenGenResultExpected.value
         );
@@ -173,13 +178,13 @@ describe("User-defined components", function() {
           childrenGenResultExpected.value
         );
       }
-      childrenGenResultActual = childrenGenActual.next();
-      childrenGenResultExpected = childrenGenExpected.next();
+      childrenGenResultActual = await childrenGenActual.next();
+      childrenGenResultExpected = await childrenGenExpected.next();
       expect(childrenGenResultActual.done).toBe(childrenGenResultActual.done);
     }
   }
 
-  it("1 simple custom-component child", function() {
+  it("1 simple custom-component child", async function() {
     const actual = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsStringSimply foo="b" />
@@ -194,10 +199,10 @@ describe("User-defined components", function() {
       </ul>
     );
 
-    areIdenticalInSimulation(actual, expected);
+    await areIdenticalInSimulation(actual, expected);
   });
 
-  it("2 simple custom-component children", function() {
+  it("2 simple custom-component children", async function() {
     const actual = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsStringSimply foo="b" />
@@ -216,10 +221,10 @@ describe("User-defined components", function() {
       </ul>
     );
 
-    areIdenticalInSimulation(actual, expected);
+    await areIdenticalInSimulation(actual, expected);
   });
 
-  it("1 custom-component with yielding child", function() {
+  it("1 custom-component with yielding child", async function() {
     const actual = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsPreWith1Yield foo="b" />
@@ -232,10 +237,10 @@ describe("User-defined components", function() {
       </ul>
     );
 
-    areIdenticalInSimulation(actual, expected);
+    await areIdenticalInSimulation(actual, expected);
   });
 
-  it("2 custom-component with yielding children", function() {
+  it("2 custom-component with yielding children", async function() {
     const actual = (
       <ReturnsListsOrDivWithChildren foo="a">
         <ReturnsPreWith1Yield foo="b" />
@@ -250,14 +255,14 @@ describe("User-defined components", function() {
       </ul>
     );
 
-    areIdenticalInSimulation(actual, expected);
+    await areIdenticalInSimulation(actual, expected);
   });
 
-  it("which returns custom-component", function() {
+  it("which returns custom-component", async function() {
     const actual = <ReturnsUserDefinedElement foo="a" />;
 
     const expected = <ReturnsSpanSimply foo="a" />;
 
-    areIdenticalInSimulation(actual, expected);
+    await areIdenticalInSimulation(actual, expected);
   });
 });

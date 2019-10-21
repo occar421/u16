@@ -177,8 +177,8 @@ describe("flattenChildren", function() {
     expect(childrenGenResult.done).toBe(true);
   });
 
-  it("should flatten components", function() {
-    const C: Internal.Component = function*() {
+  it("should flatten components", async function() {
+    const C: Internal.Component = async function*() {
       const [n] = yield [1];
       return yield* <div>{n}</div>;
     };
@@ -187,39 +187,52 @@ describe("flattenChildren", function() {
 
     let childrenGenResult = childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
+    if (
+      !childrenGenResult.done &&
+      typeof childrenGenResult.value === "object"
+    ) {
+      const childElGen = childrenGenResult.value;
+      //{`gen`| values: [], return: { tag: "div", attributes: {}, children: {`gen`} } }
 
-    const childElGen = childrenGenResult.value;
-    //{`gen`| values: [], return: { tag: "div", attributes: {}, children: {`gen`} } }
+      let childElGenResult = await childElGen.next();
+      expect(childElGenResult.done).toBe(false);
+      if (!childElGenResult.done) {
+        const childElYieldValue = childElGenResult.value;
+        expect(childElYieldValue).toStrictEqual([1]);
 
-    let childElGenResult = childElGen.next();
-    expect(childElGenResult.done).toBe(false);
-    const childElYieldValue = childElGenResult.value;
-    expect(childElYieldValue).toStrictEqual([1]);
+        childElGenResult = await childElGen.next([childElYieldValue[0]]);
+        expect(childElGenResult.done).toBe(true);
+        if (
+          childElGenResult.done &&
+          typeof childElGenResult.value === "object"
+        ) {
+          const childEl = childElGenResult.value;
+          //{ tag: "div", attributes: {}, children: {`gen`} }
+          expect(childEl.tag).toBe("div");
+          expect(childEl.attributes).toStrictEqual({});
 
-    childElGenResult = childElGen.next([childElYieldValue[0]]);
-    expect(childElGenResult.done).toBe(true);
-    if (childElGenResult.done && typeof childElGenResult.value === "object") {
-      const childEl = childElGenResult.value;
-      //{ tag: "div", attributes: {}, children: {`gen`} }
-      expect(childEl.tag).toBe("div");
-      expect(childEl.attributes).toStrictEqual({});
+          const grandchildrenGen = childEl.children;
+          //{`gen`| values: [
+          //  1
+          //], return: ! }
 
-      const grandchildrenGen = childEl.children;
-      //{`gen`| values: [
-      //  1
-      //], return: ! }
+          let grandchildrenGenResult = grandchildrenGen.next();
+          expect(grandchildrenGenResult.done).toBe(false);
+          expect(grandchildrenGenResult.value).toBe(1);
 
-      let grandchildrenGenResult = grandchildrenGen.next();
-      expect(grandchildrenGenResult.done).toBe(false);
-      expect(grandchildrenGenResult.value).toBe(1);
+          grandchildrenGenResult = grandchildrenGen.next();
+          expect(grandchildrenGenResult.done).toBe(true);
+        } else {
+          throw new Error("failed");
+        }
+      } else {
+        throw new Error("failed");
+      }
 
-      grandchildrenGenResult = grandchildrenGen.next();
-      expect(grandchildrenGenResult.done).toBe(true);
+      childrenGenResult = childrenGen.next();
+      expect(childrenGenResult.done).toBe(true);
     } else {
       throw new Error("failed");
     }
-
-    childrenGenResult = childrenGen.next();
-    expect(childrenGenResult.done).toBe(true);
   });
 });

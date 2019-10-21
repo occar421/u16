@@ -1,11 +1,12 @@
 import { u } from "./index";
 import { isPrimitive } from "./utils";
 
-function testStringify(elGen: u.JSX.Element): string {
+async function testStringify(elGen: u.JSX.Element): Promise<string> {
   let el: VirtualInternal.VNode;
   let value = undefined;
   while (true) {
-    const childrenGenResult = elGen.next([value]);
+    const resultPromise = elGen.next([value]); // to enable type inference...
+    const childrenGenResult = await resultPromise;
     if (childrenGenResult.done) {
       el = childrenGenResult.value;
       break;
@@ -23,7 +24,7 @@ function testStringify(elGen: u.JSX.Element): string {
     if (isPrimitive(childElGen)) {
       strings.push(childElGen.toString());
     } else {
-      strings.push(testStringify(childElGen));
+      strings.push(await testStringify(childElGen));
     }
   }
   return `<${el.tag} ${Object.entries(el.attributes || {}).map(
@@ -31,13 +32,13 @@ function testStringify(elGen: u.JSX.Element): string {
   )}>${strings.join("")}</${el.tag}>`;
 }
 
-export function ignite(
+export async function ignite(
   jsxElement: u.JSX.Element,
   htmlElement: HTMLElement
-): void {
+): Promise<void> {
   console.debug(jsxElement);
 
-  const inner = testStringify(jsxElement);
+  const inner = await testStringify(jsxElement);
 
   htmlElement.innerHTML = `<pre>${inner}</pre>`; // TODO diffing to apply change
 

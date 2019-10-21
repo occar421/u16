@@ -19,7 +19,7 @@ declare namespace Internal {
   };
 }
 
-type SomethingValueAndMetrics = unknown | [unknown]; // TODO
+type SomethingValueAndMetrics = [unknown]; // TODO
 type SomethingValueAndOperationParameter = [unknown]; // TODO
 
 interface HtmlCommon {
@@ -41,7 +41,7 @@ declare namespace VirtualInternal {
 declare namespace JSXInternal {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
   interface Element
-    extends Generator<
+    extends AsyncGenerator<
       SomethingValueAndMetrics,
       VirtualInternal.VNode,
       SomethingValueAndOperationParameter

@@ -1,6 +1,6 @@
-import { isGenerator, flattenChildren } from "./utils";
+import { isAsyncGenerator, flattenChildren } from "./utils";
 
-export function* _u(
+export async function* _u(
   component: string | Internal.Component<{}>,
   attributesArg: { [key: string]: unknown },
   ...childElements: Internal.ChildrenInJsx[]
@@ -11,7 +11,7 @@ export function* _u(
       ...attributes,
       children: flattenChildren(childElements)
     });
-    if (isGenerator(content)) {
+    if (isAsyncGenerator(content)) {
       return yield* content;
     } else {
       throw Error("Type of `component` is invalid.");

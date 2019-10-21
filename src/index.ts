@@ -10,7 +10,7 @@ import { _u } from "./u";
 export { map } from "./children-operators";
 
 // export const u = _u;
-export function* u(
+export async function* u(
   component: string | u.Component<{}>,
   attributesArg: { [key: string]: unknown }, // need to be able to be generator?
   ...childElements: Internal.ChildrenInJsx[]
