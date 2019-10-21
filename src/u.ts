@@ -1,15 +1,15 @@
-import { isGenerator, normalizeGenerator } from "./utils";
+import { isGenerator, flattenChildren } from "./utils";
 
 export function* _u(
   component: string | Internal.Component<{}>,
   attributesArg: { [key: string]: unknown },
-  ...childElements: Internal.ChildrenInJsx
+  ...childElements: Internal.ChildrenInJsx[]
 ): JSXInternal.Element {
   const attributes = attributesArg || {};
   if (typeof component === "function") {
     const content = component({
       ...attributes,
-      children: normalizeGenerator(childElements)
+      children: flattenChildren(childElements)
     });
     if (isGenerator(content)) {
       return yield* content;
@@ -20,7 +20,7 @@ export function* _u(
     return {
       tag: component,
       attributes,
-      children: normalizeGenerator(childElements)
+      children: flattenChildren(childElements)
     };
   } else {
     throw Error("Type of `component` is invalid.");

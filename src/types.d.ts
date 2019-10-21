@@ -1,10 +1,16 @@
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface DeepArray<T> extends Array<T | DeepArray<T>> {}
-
 declare namespace Internal {
   type Primitive = string | number;
 
-  type ChildrenInJsx = DeepArray<JSXInternal.Primitive | JSXInternal.Element>;
+  type ChildrenInJsx =
+    | ArrayOfChildrenInJsx
+    | GeneratorOfChildrenInJsx
+    | JSXInternal.Primitive
+    | JSXInternal.Element;
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface ArrayOfChildrenInJsx extends Array<ChildrenInJsx> {}
+  interface GeneratorOfChildrenInJsx {
+    childrenGenerator: Generator<ChildrenInJsx>;
+  }
 
   type Component<T extends {} = {}> = ((
     props: T & { children?: VirtualInternal.VChildren }
@@ -13,7 +19,7 @@ declare namespace Internal {
   };
 }
 
-type SomethingValueAndMetrics = [unknown]; // TODO
+type SomethingValueAndMetrics = unknown | [unknown]; // TODO
 type SomethingValueAndOperationParameter = [unknown]; // TODO
 
 interface HtmlCommon {
@@ -29,16 +35,17 @@ declare namespace VirtualInternal {
         children: VChildren;
       }
     | Internal.Primitive;
-  type VReport = unknown; // TODO
-  type VChildren = Generator<{ node: VNode } | { report: VReport }>;
+  type VChildren = Generator<JSXInternal.Element | JSXInternal.Primitive>;
 }
 
 declare namespace JSXInternal {
-  type Element = Generator<
-    SomethingValueAndMetrics,
-    VirtualInternal.VNode,
-    SomethingValueAndOperationParameter
-  >; // TODO internal path to return generated HTML element?
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface Element
+    extends Generator<
+      SomethingValueAndMetrics,
+      VirtualInternal.VNode,
+      SomethingValueAndOperationParameter
+    > {} // TODO internal path to return generated HTML element?
 
   interface IntrinsicElements {
     div: HtmlCommon;

@@ -1,24 +1,34 @@
-import { isPrimitive, u } from "./index";
+import { u } from "./index";
+import { isPrimitive } from "./utils";
 
-function testStringify(node: VirtualInternal.VNode): string {
-  if (isPrimitive(node)) {
-    return node.toString();
-  } else {
-    const children = node.children;
-    const strings = [];
-    let prev = undefined;
-    while (true) {
-      const current = children.next([prev]);
-      if (current.done) {
-        break;
-      } else if ("node" in current.value) {
-        strings.push(testStringify(current.value.node));
-      }
+function testStringify(elGen: u.JSX.Element): string {
+  let el: VirtualInternal.VNode;
+  let value = undefined;
+  while (true) {
+    const childrenGenResult = elGen.next([value]);
+    if (childrenGenResult.done) {
+      el = childrenGenResult.value;
+      break;
     }
-    return `<${node.tag} ${Object.entries(node.attributes || {}).map(
-      e => `${e[0]}="${e[1]}"`
-    )}>${strings.join("")}</${node.tag}>`;
+    value = childrenGenResult.value;
   }
+
+  if (isPrimitive(el)) {
+    return elGen.toString();
+  }
+
+  const childrenGen = el.children;
+  const strings: string[] = [];
+  for (const childElGen of childrenGen) {
+    if (isPrimitive(childElGen)) {
+      strings.push(childElGen.toString());
+    } else {
+      strings.push(testStringify(childElGen));
+    }
+  }
+  return `<${el.tag} ${Object.entries(el.attributes || {}).map(
+    e => `${e[0]}="${e[1]}"`
+  )}>${strings.join("")}</${el.tag}>`;
 }
 
 export function ignite(
@@ -26,16 +36,10 @@ export function ignite(
   htmlElement: HTMLElement
 ): void {
   console.debug(jsxElement);
-  let value;
-  while (true) {
-    const current = jsxElement.next(); // TODO construct element with child's VNode?
-    console.debug(current);
-    if (current.done) {
-      value = testStringify(current.value);
-      break;
-    }
-  }
-  htmlElement.innerHTML = `<pre>${value}</pre>`; // TODO diffing to apply change
+
+  const inner = testStringify(jsxElement);
+
+  htmlElement.innerHTML = `<pre>${inner}</pre>`; // TODO diffing to apply change
 
   // TODO event loop
 }
