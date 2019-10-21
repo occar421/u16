@@ -1,79 +1,180 @@
 /** @jsx u */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { u } from "../";
-import { normalizeGenerator } from "../utils";
+import { flattenChildren } from "../utils";
 
-describe("normalizeGenerator", function() {
+describe("flattenChildren", function() {
   it("should do nothing with empty array", function() {
-    const result = normalizeGenerator([]);
+    const childrenGen = flattenChildren([]);
 
-    const current = result.next();
-    expect(current.done).toBe(true);
+    const childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(true);
   });
 
   it("should flatten array of empty arrays", function() {
-    const result = normalizeGenerator([[], []]);
+    const childrenGen = flattenChildren([[], []]);
 
-    const current = result.next();
-    expect(current.done).toBe(true);
+    const childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(true);
   });
 
   it("should flatten nested array with elements", function() {
-    const result = normalizeGenerator([1, [2, [3, [4], 5], 6], 7]);
+    const childrenGen = flattenChildren([1, [2, [3, [4], 5], 6], 7]);
 
-    let current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 1 });
+    let childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(1);
 
-    current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 2 });
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(2);
 
-    current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 3 });
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(3);
 
-    current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 4 });
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(4);
 
-    current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 5 });
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(5);
 
-    current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 6 });
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(6);
 
-    current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 7 });
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(7);
 
-    current = result.next();
-    expect(current.done).toBe(true);
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(true);
   });
 
-  it("should flatten array of generator", function() {
-    function* g(initial: number): Generator<[unknown], number> {
-      return initial;
-    }
+  function g<T extends Internal.ChildrenInJsx>(
+    ...args: T[]
+  ): {
+    childrenGenerator: Generator<Internal.ChildrenInJsx>;
+  } {
+    return {
+      childrenGenerator: (function*() {
+        yield* args;
+      })()
+    };
+  }
 
-    const result = normalizeGenerator([g(1), g(2), g(3)]);
+  it("should flatten children generator", function() {
+    const childrenGen = flattenChildren(g(1, 2, 3));
 
-    let current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 1 });
+    let childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(1);
 
-    current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 2 });
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(2);
 
-    current = result.next();
-    expect(current.done).toBe(false);
-    expect(current.value).toStrictEqual({ node: 3 });
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(3);
 
-    current = result.next();
-    expect(current.done).toBe(true);
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(true);
+  });
+
+  it("should flatten array of children generator", function() {
+    const childrenGen = flattenChildren([g(1, 2), g(3, 4), g(5, 6)]);
+
+    let childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(1);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(2);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(3);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(4);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(5);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(6);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(true);
+  });
+
+  it("should flatten children generator of array", function() {
+    const childrenGen = flattenChildren(g([1, 2], [3, 4], [5, 6]));
+
+    let childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(1);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(2);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(3);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(4);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(5);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(6);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(true);
+  });
+
+  it("should flatten children generator of children generator", function() {
+    const childrenGen = flattenChildren(g(g(1, 2), g(3, 4), g(5, 6)));
+
+    let childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(1);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(2);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(3);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(4);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(5);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
+    expect(childrenGenResult.value).toBe(6);
+
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(true);
   });
 
   it("should flatten components", function() {
@@ -82,33 +183,43 @@ describe("normalizeGenerator", function() {
       return yield* <div>{n}</div>;
     };
 
-    const result = normalizeGenerator([<C />]);
+    const childrenGen = flattenChildren(g([<C />]));
 
-    let current = result.next();
-    expect(current.done).toBe(false); // yield [1]
+    let childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(false);
 
-    current = result.next();
-    expect(current.done).toBe(false);
-    if (
-      !current.done &&
-      "node" in current.value &&
-      typeof current.value.node === "object"
-    ) {
-      const node = current.value.node;
-      expect(node.tag).toBe("div");
-      expect(node.attributes).toStrictEqual({});
-      let child = node.children.next();
-      expect(child.done).toBe(false);
-      expect(child.value).toStrictEqual({ node: 1 });
-      child = node.children.next();
-      expect(child.done).toBe(true);
+    const childElGen = childrenGenResult.value;
+    //{`gen`| values: [], return: { tag: "div", attributes: {}, children: {`gen`} } }
+
+    let childElGenResult = childElGen.next();
+    expect(childElGenResult.done).toBe(false);
+    const childElYieldValue = childElGenResult.value;
+    expect(childElYieldValue).toStrictEqual([1]);
+
+    childElGenResult = childElGen.next([childElYieldValue[0]]);
+    expect(childElGenResult.done).toBe(true);
+    if (childElGenResult.done && typeof childElGenResult.value === "object") {
+      const childEl = childElGenResult.value;
+      //{ tag: "div", attributes: {}, children: {`gen`} }
+      expect(childEl.tag).toBe("div");
+      expect(childEl.attributes).toStrictEqual({});
+
+      const grandchildrenGen = childEl.children;
+      //{`gen`| values: [
+      //  1
+      //], return: ! }
+
+      let grandchildrenGenResult = grandchildrenGen.next();
+      expect(grandchildrenGenResult.done).toBe(false);
+      expect(grandchildrenGenResult.value).toBe(1);
+
+      grandchildrenGenResult = grandchildrenGen.next();
+      expect(grandchildrenGenResult.done).toBe(true);
     } else {
       throw new Error("failed");
     }
 
-    current = result.next();
-    expect(current.done).toBe(true);
+    childrenGenResult = childrenGen.next();
+    expect(childrenGenResult.done).toBe(true);
   });
-
-  // ? tests and ensure it flattens gen<gen<T>>, gen<T[]>
 });
