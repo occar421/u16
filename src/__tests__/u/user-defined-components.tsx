@@ -104,18 +104,40 @@ describe("User-defined components", function() {
     }
   });
 
-  function areIdentical(
+  interface YieldSim {
+    type: "yield-sim";
+    el: u.JSX.Element;
+    yields: [unknown][];
+  }
+
+  function yieldSim(yields: [unknown][], el: u.JSX.Element): YieldSim {
+    return { type: "yield-sim", el, yields };
+  }
+
+  function areIdenticalInSimulation(
     elGenActual: u.JSX.Element,
-    elGenExpected: u.JSX.Element
+    elGenExpectedArg: u.JSX.Element | YieldSim
   ): void {
-    let elGenResultActual = elGenActual.next();
-    let elGenResultExpected = elGenExpected.next();
+    const elGenExpected =
+      "type" in elGenExpectedArg && elGenExpectedArg.type === "yield-sim"
+        ? (function*() {
+            yield* elGenExpectedArg.yields;
+            return yield* elGenExpectedArg.el;
+          })()
+        : (elGenExpectedArg as u.JSX.Element);
+
+    let valueActual = undefined;
+    let elGenResultActual = elGenActual.next([valueActual]);
+    let valueExpected = undefined;
+    let elGenResultExpected = elGenExpected.next([valueExpected]);
     expect(elGenResultActual.done).toBe(elGenResultExpected.done);
     while (!elGenResultActual.done) {
+      valueActual = elGenResultActual.value;
+      valueExpected = elGenResultExpected.value;
       // @ts-ignore
-      expect(elGenResultActual.value).toStrictEqual(elGenResultExpected.value);
-      elGenResultActual = elGenActual.next();
-      elGenResultExpected = elGenExpected.next();
+      expect(valueActual).toStrictEqual(valueExpected);
+      elGenResultActual = elGenActual.next([valueActual]);
+      elGenResultExpected = elGenExpected.next([valueExpected]);
       expect(elGenResultActual.done).toBe(elGenResultExpected.done);
     }
 
@@ -142,7 +164,7 @@ describe("User-defined components", function() {
         typeof childrenGenResultExpected.value
       );
       if (typeof childrenGenResultActual.value === "object") {
-        areIdentical(
+        areIdenticalInSimulation(
           childrenGenResultActual.value,
           childrenGenResultExpected.value
         );
@@ -172,7 +194,7 @@ describe("User-defined components", function() {
       </ul>
     );
 
-    areIdentical(actual, expected);
+    areIdenticalInSimulation(actual, expected);
   });
 
   it("2 simple custom-component children", function() {
@@ -194,7 +216,7 @@ describe("User-defined components", function() {
       </ul>
     );
 
-    areIdentical(actual, expected);
+    areIdenticalInSimulation(actual, expected);
   });
 
   it("1 custom-component with yielding child", function() {
@@ -206,13 +228,11 @@ describe("User-defined components", function() {
 
     const expected = (
       <ul>
-        <li>
-          <ReturnsStringSimply foo="b" />
-        </li>
+        <li>{yieldSim([["bar"]], <pre>bar-b</pre>)}</li>
       </ul>
     );
 
-    areIdentical(actual, expected);
+    areIdenticalInSimulation(actual, expected);
   });
 
   it("2 custom-component with yielding children", function() {
@@ -225,16 +245,12 @@ describe("User-defined components", function() {
 
     const expected = (
       <ul>
-        <li>
-          <ReturnsStringSimply foo="b" />
-        </li>
-        <li>
-          <ReturnsStringSimply foo="c" />
-        </li>
+        <li>{yieldSim([["bar"]], <pre>bar-b</pre>)}</li>
+        <li>{yieldSim([["bar"]], <pre>bar-c</pre>)}</li>
       </ul>
     );
 
-    areIdentical(actual, expected);
+    areIdenticalInSimulation(actual, expected);
   });
 
   it("which returns custom-component", function() {
@@ -242,6 +258,6 @@ describe("User-defined components", function() {
 
     const expected = <ReturnsSpanSimply foo="a" />;
 
-    areIdentical(actual, expected);
+    areIdenticalInSimulation(actual, expected);
   });
 });
