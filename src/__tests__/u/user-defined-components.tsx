@@ -6,17 +6,30 @@ const ReturnsStringSimply: u.Component<{ foo: string }> = async function*({
 }) {
   return `~${foo}~`;
 };
+
 const ReturnsSpanSimply: u.Component<{ foo: string }> = async function*({
   foo
 }) {
   return yield* <span>{foo}</span>;
 };
+
 const ReturnsPreWith1Yield: u.Component<{ foo: string }> = async function*({
   foo
 }) {
   const [a] = yield ["bar"];
   return yield* <pre>{`${a}-${foo}`}</pre>;
 };
+
+async function pseudoFetch(): Promise<string> {
+  return "buz";
+}
+const ReturnsPreWith1AwaitYield: u.Component<{
+  foo: string;
+}> = async function*({ foo }) {
+  const [a] = yield [await pseudoFetch()];
+  return yield* <pre>{`${a}-${foo}`}</pre>;
+};
+
 const ReturnsListsOrDivWithChildren: u.Component<{
   foo: string;
 }> = async function*({ foo, children }) {
@@ -26,6 +39,7 @@ const ReturnsListsOrDivWithChildren: u.Component<{
     return yield* <div>{foo}</div>;
   }
 };
+
 const ReturnsUserDefinedElement: u.Component<{
   foo: string;
 }> = async function*({ foo }) {
@@ -98,6 +112,44 @@ describe("User-defined components", function() {
         let childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(false);
         expect(childrenGenResult.value).toBe("bar-a");
+
+        childrenGenResult = await childrenGen.next();
+        expect(childrenGenResult.done).toBe(true);
+      } else {
+        throw new Error("failed");
+      }
+    } else {
+      throw new Error("failed");
+    }
+  });
+
+  it("which returns element with one await yield", async function() {
+    const rootElGen = <ReturnsPreWith1AwaitYield foo="a" />;
+    //{`gen`| values: [
+    //  ["buz"]
+    //], return: { tag: "pre", attributes: {}, children: {`gen`| values: [
+    //  "buz-a"
+    //]}
+
+    let rootElGenResult = await rootElGen.next();
+    expect(rootElGenResult.done).toBe(false);
+    if (!rootElGenResult.done) {
+      expect(rootElGenResult.value).toStrictEqual(["buz"]);
+      rootElGenResult = await rootElGen.next([rootElGenResult.value]);
+      expect(rootElGenResult.done).toBe(true);
+      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+        const rootEl = rootElGenResult.value;
+        //{ tag: "pre", attributes: {}, children: {`gen`} }
+        expect(rootEl.tag).toBe("pre");
+        expect(rootEl.attributes).toStrictEqual({});
+        const childrenGen = rootEl.children;
+        //{`gen`| values: [
+        //  "bar-a"
+        //], return: ! }
+
+        let childrenGenResult = await childrenGen.next();
+        expect(childrenGenResult.done).toBe(false);
+        expect(childrenGenResult.value).toBe("buz-a");
 
         childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
