@@ -20,7 +20,7 @@ async function testStringify(elGen: u.JSX.Element): Promise<string> {
 
   const childrenGen = el.children;
   const strings: string[] = [];
-  for (const childElGen of childrenGen) {
+  for await (const childElGen of childrenGen) {
     if (isPrimitive(childElGen)) {
       strings.push(childElGen.toString());
     } else {

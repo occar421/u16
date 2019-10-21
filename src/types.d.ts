@@ -9,7 +9,7 @@ declare namespace Internal {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
   interface ArrayOfChildrenInJsx extends Array<ChildrenInJsx> {}
   interface GeneratorOfChildrenInJsx {
-    childrenGenerator: Generator<ChildrenInJsx>;
+    childrenGenerator: AsyncGenerator<ChildrenInJsx>;
   }
 
   type Component<T extends {} = {}> = ((
@@ -35,7 +35,7 @@ declare namespace VirtualInternal {
         children: VChildren;
       }
     | Internal.Primitive;
-  type VChildren = Generator<JSXInternal.Element | JSXInternal.Primitive>;
+  type VChildren = AsyncGenerator<JSXInternal.Element | JSXInternal.Primitive>;
 }
 
 declare namespace JSXInternal {

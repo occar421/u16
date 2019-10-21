@@ -4,176 +4,176 @@ import { u } from "../";
 import { flattenChildren } from "../utils";
 
 describe("flattenChildren", function() {
-  it("should do nothing with empty array", function() {
+  it("should do nothing with empty array", async function() {
     const childrenGen = flattenChildren([]);
 
-    const childrenGenResult = childrenGen.next();
+    const childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(true);
   });
 
-  it("should flatten array of empty arrays", function() {
+  it("should flatten array of empty arrays", async function() {
     const childrenGen = flattenChildren([[], []]);
 
-    const childrenGenResult = childrenGen.next();
+    const childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(true);
   });
 
-  it("should flatten nested array with elements", function() {
+  it("should flatten nested array with elements", async function() {
     const childrenGen = flattenChildren([1, [2, [3, [4], 5], 6], 7]);
 
-    let childrenGenResult = childrenGen.next();
+    let childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(1);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(2);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(3);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(4);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(5);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(6);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(7);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(true);
   });
 
   function g<T extends Internal.ChildrenInJsx>(
     ...args: T[]
   ): {
-    childrenGenerator: Generator<Internal.ChildrenInJsx>;
+    childrenGenerator: AsyncGenerator<Internal.ChildrenInJsx>;
   } {
     return {
-      childrenGenerator: (function*() {
+      childrenGenerator: (async function*() {
         yield* args;
       })()
     };
   }
 
-  it("should flatten children generator", function() {
+  it("should flatten children generator", async function() {
     const childrenGen = flattenChildren(g(1, 2, 3));
 
-    let childrenGenResult = childrenGen.next();
+    let childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(1);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(2);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(3);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(true);
   });
 
-  it("should flatten array of children generator", function() {
+  it("should flatten array of children generator", async function() {
     const childrenGen = flattenChildren([g(1, 2), g(3, 4), g(5, 6)]);
 
-    let childrenGenResult = childrenGen.next();
+    let childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(1);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(2);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(3);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(4);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(5);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(6);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(true);
   });
 
-  it("should flatten children generator of array", function() {
+  it("should flatten children generator of array", async function() {
     const childrenGen = flattenChildren(g([1, 2], [3, 4], [5, 6]));
 
-    let childrenGenResult = childrenGen.next();
+    let childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(1);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(2);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(3);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(4);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(5);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(6);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(true);
   });
 
-  it("should flatten children generator of children generator", function() {
+  it("should flatten children generator of children generator", async function() {
     const childrenGen = flattenChildren(g(g(1, 2), g(3, 4), g(5, 6)));
 
-    let childrenGenResult = childrenGen.next();
+    let childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(1);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(2);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(3);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(4);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(5);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     expect(childrenGenResult.value).toBe(6);
 
-    childrenGenResult = childrenGen.next();
+    childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(true);
   });
 
@@ -185,7 +185,7 @@ describe("flattenChildren", function() {
 
     const childrenGen = flattenChildren(g([<C />]));
 
-    let childrenGenResult = childrenGen.next();
+    let childrenGenResult = await childrenGen.next();
     expect(childrenGenResult.done).toBe(false);
     if (
       !childrenGenResult.done &&
@@ -216,11 +216,11 @@ describe("flattenChildren", function() {
           //  1
           //], return: ! }
 
-          let grandchildrenGenResult = grandchildrenGen.next();
+          let grandchildrenGenResult = await grandchildrenGen.next();
           expect(grandchildrenGenResult.done).toBe(false);
           expect(grandchildrenGenResult.value).toBe(1);
 
-          grandchildrenGenResult = grandchildrenGen.next();
+          grandchildrenGenResult = await grandchildrenGen.next();
           expect(grandchildrenGenResult.done).toBe(true);
         } else {
           throw new Error("failed");
@@ -229,7 +229,7 @@ describe("flattenChildren", function() {
         throw new Error("failed");
       }
 
-      childrenGenResult = childrenGen.next();
+      childrenGenResult = await childrenGen.next();
       expect(childrenGenResult.done).toBe(true);
     } else {
       throw new Error("failed");

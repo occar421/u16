@@ -8,11 +8,14 @@ export function map(
   ) => Internal.ChildrenInJsx
 ): (g: VirtualInternal.VChildren) => Internal.GeneratorOfChildrenInJsx {
   return (g: VirtualInternal.VChildren) => ({
-    childrenGenerator: (function*(): Generator<Internal.ChildrenInJsx> {
+    childrenGenerator: (async function*(): AsyncGenerator<
+      Internal.ChildrenInJsx
+    > {
       let value = undefined;
       let index = 0;
       while (true) {
-        const current = g.next([value]);
+        const currentPromise = g.next([value]); // to enable type inference...
+        const current = await currentPromise;
         if (current.done) {
           break;
         }

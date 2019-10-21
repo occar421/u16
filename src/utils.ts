@@ -17,7 +17,7 @@ export function isPrimitive(arg: unknown): arg is JSXInternal.Primitive {
   return typeof arg === "string" || typeof arg === "number";
 }
 
-export function* flattenChildren(
+export async function* flattenChildren(
   childElements: Internal.ChildrenInJsx
 ): JSXInternal.Children {
   if (Array.isArray(childElements)) {
@@ -28,7 +28,7 @@ export function* flattenChildren(
     typeof childElements === "object" &&
     "childrenGenerator" in childElements
   ) {
-    for (const child of childElements.childrenGenerator) {
+    for await (const child of childElements.childrenGenerator) {
       yield* flattenChildren(child);
     }
   } else {
