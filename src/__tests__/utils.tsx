@@ -236,3 +236,5 @@ describe("flattenChildren", function() {
     }
   });
 });
+
+// TODO: tests for children-operators

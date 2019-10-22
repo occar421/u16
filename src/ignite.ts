@@ -1,7 +1,7 @@
 import { u } from "./index";
 import { isPrimitive } from "./utils";
 
-async function testStringify(elGen: u.JSX.Element): Promise<string> {
+async function testDomify(elGen: u.JSX.Element): Promise<Node> {
   let el: VirtualInternal.VNode;
   let value = undefined;
   while (true) {
@@ -15,32 +15,43 @@ async function testStringify(elGen: u.JSX.Element): Promise<string> {
   }
 
   if (isPrimitive(el)) {
-    return elGen.toString();
+    return document.createTextNode(elGen.toString());
+  }
+
+  const htmlElement = document.createElement(el.tag);
+
+  const attributes = el.attributes;
+  for (const key in attributes) {
+    const value = attributes[key];
+    if (isPrimitive(value)) {
+      htmlElement.setAttribute(key, value.toString());
+    } else if (!value) {
+      // do nothing
+    } else {
+      console.warn("Not supported yet", value);
+    }
   }
 
   const childrenGen = el.children;
-  const strings: string[] = [];
   for await (const childElGen of childrenGen) {
-    if (isPrimitive(childElGen)) {
-      strings.push(childElGen.toString());
-    } else {
-      strings.push(await testStringify(childElGen));
-    }
+    htmlElement.appendChild(
+      isPrimitive(childElGen)
+        ? document.createTextNode(childElGen.toString())
+        : await testDomify(childElGen)
+    );
   }
-  return `<${el.tag} ${Object.entries(el.attributes || {}).map(
-    e => `${e[0]}="${e[1]}"`
-  )}>${strings.join("")}</${el.tag}>`;
+  return htmlElement;
 }
 
 export async function ignite(
   jsxElement: u.JSX.Element,
   htmlElement: HTMLElement
 ): Promise<void> {
-  console.debug(jsxElement);
+  const inner = await testDomify(jsxElement);
 
-  const inner = await testStringify(jsxElement);
-
-  htmlElement.innerHTML = `<pre>${inner}</pre>`; // TODO diffing to apply change
-
-  // TODO event loop
+  htmlElement.appendChild(inner);
 }
+
+// TODO function (event)
+// TODO diffing to apply change using VDOM (state change commit by everlasting generator: consumer producer pattern with preemptive order commit)
+// TODO event loop
