@@ -2,6 +2,11 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { u } from "../../index";
 
+// shim
+function assert(condition: unknown): asserts condition {
+  expect(condition).toBe(true);
+}
+
 describe("Intrinsic components", function() {
   describe("with simple usage", function() {
     it("self-closing & plain", async function() {
@@ -9,8 +14,9 @@ describe("Intrinsic components", function() {
       //{`gen`| values: [], return: { tag: "div", attributes: {}, children: {`gen`| values: [], return: ! } } }
 
       const rootElGenResult = await rootElGen.next();
-      expect(rootElGenResult.done).toBe(true);
-      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      assert(rootElGenResult.done);
+      assert(typeof rootElGenResult.value === "object");
+      {
         const rootEl = rootElGenResult.value;
         //{ tag: "div", attributes: {}, children: {`gen`} }
         expect(rootEl.tag).toBe("div");
@@ -20,8 +26,6 @@ describe("Intrinsic components", function() {
 
         const childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
-      } else {
-        throw new Error("failed");
       }
     });
 
@@ -30,8 +34,9 @@ describe("Intrinsic components", function() {
       //{`gen`| values: [], return: { tag: "div", attributes: { "id": "1" }, children: {`gen`| values: [], return: ! } } }
 
       const rootElGenResult = await rootElGen.next();
-      expect(rootElGenResult.done).toBe(true);
-      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      assert(rootElGenResult.done);
+      assert(typeof rootElGenResult.value === "object");
+      {
         const rootEl = rootElGenResult.value;
         //{ tag: "div", attributes: { "id": "1" }, children: {`gen`} }
         expect(rootEl.tag).toBe("div");
@@ -41,8 +46,6 @@ describe("Intrinsic components", function() {
 
         const childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
-      } else {
-        throw new Error("failed");
       }
     });
 
@@ -53,8 +56,9 @@ describe("Intrinsic components", function() {
       //], return: ! } } }
 
       const rootElGenResult = await rootElGen.next();
-      expect(rootElGenResult.done).toBe(true);
-      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      assert(rootElGenResult.done);
+      assert(typeof rootElGenResult.value === "object");
+      {
         const rootEl = rootElGenResult.value;
         //{ tag: "div", attributes: { "id": "1" }, children: {`gen`} }
         expect(rootEl.tag).toBe("div");
@@ -70,8 +74,6 @@ describe("Intrinsic components", function() {
 
         childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
-      } else {
-        throw new Error("failed");
       }
     });
 
@@ -86,8 +88,9 @@ describe("Intrinsic components", function() {
       //], return: ! } } }
 
       const rootElGenResult = await rootElGen.next();
-      expect(rootElGenResult.done).toBe(true);
-      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      assert(rootElGenResult.done);
+      assert(typeof rootElGenResult.value === "object");
+      {
         const rootEl = rootElGenResult.value;
         //{ tag: "div", attributes: { "id": "1" }, children: {`gen`} }
         expect(rootEl.tag).toBe("div");
@@ -98,20 +101,16 @@ describe("Intrinsic components", function() {
         //], return: ! }
 
         let childrenGenResult = await childrenGen.next();
-        expect(childrenGenResult.done).toBe(false);
-        if (
-          !childrenGenResult.done &&
-          typeof childrenGenResult.value === "object"
-        ) {
+        assert(!childrenGenResult.done);
+        assert(typeof childrenGenResult.value === "object");
+        {
           const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
 
           const childElGenResult = await childElGen.next();
-          expect(childElGenResult.done).toBe(true);
-          if (
-            childElGenResult.done &&
-            typeof childElGenResult.value === "object"
-          ) {
+          assert(childElGenResult.done);
+          assert(typeof childElGenResult.value === "object");
+          {
             const childEl = childElGenResult.value;
             //{ tag: "div", attributes: { "id": "2" }, children: {`gen`} }
             expect(childEl.tag).toBe("div");
@@ -122,17 +121,11 @@ describe("Intrinsic components", function() {
 
             const grandchildrenGenResult = await grandchildrenGen.next();
             expect(grandchildrenGenResult.done).toBe(true);
-          } else {
-            throw new Error("failed");
           }
-        } else {
-          throw new Error("failed");
         }
 
         childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
-      } else {
-        throw new Error("failed");
       }
     });
 
@@ -149,8 +142,9 @@ describe("Intrinsic components", function() {
       //], return: ! } } }
 
       const rootElGenResult = await rootElGen.next();
-      expect(rootElGenResult.done).toBe(true);
-      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      assert(rootElGenResult.done);
+      assert(typeof rootElGenResult.value === "object");
+      {
         const rootEl = rootElGenResult.value;
         //{ tag: "div", attributes: { "id": "1" }, children: {`gen`} }
         expect(rootEl.tag).toBe("div");
@@ -162,20 +156,16 @@ describe("Intrinsic components", function() {
         //]
 
         let childrenGenResult = await childrenGen.next();
-        expect(childrenGenResult.done).toBe(false);
-        if (
-          !childrenGenResult.done &&
-          typeof childrenGenResult.value === "object"
-        ) {
+        assert(!childrenGenResult.done);
+        assert(typeof childrenGenResult.value === "object");
+        {
           const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
 
           const childElGenResult = await childElGen.next();
-          expect(childElGenResult.done).toBe(true);
-          if (
-            childElGenResult.done &&
-            typeof childElGenResult.value === "object"
-          ) {
+          assert(childElGenResult.done);
+          assert(typeof childElGenResult.value === "object");
+          {
             const childEl = childElGenResult.value;
             //{ tag: "div", attributes: { "id": "2" }, children: {`gen`} }
             expect(childEl.tag).toBe("div");
@@ -186,28 +176,20 @@ describe("Intrinsic components", function() {
 
             const grandchildrenGenResult = await grandchildrenGen.next();
             expect(grandchildrenGenResult.done).toBe(true);
-          } else {
-            throw new Error("failed");
           }
-        } else {
-          throw new Error("failed");
         }
 
         childrenGenResult = await childrenGen.next();
-        expect(childrenGenResult.done).toBe(false);
-        if (
-          !childrenGenResult.done &&
-          typeof childrenGenResult.value === "object"
-        ) {
+        assert(!childrenGenResult.done);
+        assert(typeof childrenGenResult.value === "object");
+        {
           const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`} } }
 
           const childElGenResult = await childElGen.next();
-          expect(childElGenResult.done).toBe(true);
-          if (
-            childElGenResult.done &&
-            typeof childElGenResult.value === "object"
-          ) {
+          assert(childElGenResult.done);
+          assert(typeof childElGenResult.value === "object");
+          {
             const childEl = childElGenResult.value;
             //{ tag: "div", attributes: { "id": "3" }, children: {`gen`} }
             expect(childEl.tag).toBe("div");
@@ -218,17 +200,11 @@ describe("Intrinsic components", function() {
 
             const grandchildrenGenResult = await grandchildrenGen.next();
             expect(grandchildrenGenResult.done).toBe(true);
-          } else {
-            throw new Error("failed");
           }
-        } else {
-          throw new Error("failed");
         }
 
         childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
-      } else {
-        throw new Error("failed");
       }
     });
 
@@ -245,8 +221,9 @@ describe("Intrinsic components", function() {
       //], return: ! } } }
 
       const rootElGenResult = await rootElGen.next();
-      expect(rootElGenResult.done).toBe(true);
-      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      assert(rootElGenResult.done);
+      assert(typeof rootElGenResult.value === "object");
+      {
         const rootEl = rootElGenResult.value;
         //{ tag: "div", attributes: { "id": "1" }, children: {`gen`} }
         expect(rootEl.tag).toBe("div");
@@ -257,20 +234,16 @@ describe("Intrinsic components", function() {
         //]
 
         let childrenGenResult = await childrenGen.next();
-        expect(childrenGenResult.done).toBe(false);
-        if (
-          !childrenGenResult.done &&
-          typeof childrenGenResult.value === "object"
-        ) {
+        assert(!childrenGenResult.done);
+        assert(typeof childrenGenResult.value === "object");
+        {
           const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
 
           const childElGenResult = await childElGen.next();
-          expect(childElGenResult.done).toBe(true);
-          if (
-            childElGenResult.done &&
-            typeof childElGenResult.value === "object"
-          ) {
+          assert(childElGenResult.done);
+          assert(typeof childElGenResult.value === "object");
+          {
             const childEl = childElGenResult.value;
             //{ tag: "div", attributes: { "id": "2" }, children: {`gen`} }
             expect(childEl.tag).toBe("div");
@@ -287,17 +260,11 @@ describe("Intrinsic components", function() {
 
             grandchildrenGenResult = await grandchildrenGen.next();
             expect(grandchildrenGenResult.done).toBe(true);
-          } else {
-            throw new Error("failed");
           }
-        } else {
-          throw new Error("failed");
         }
 
         childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
-      } else {
-        throw new Error("failed");
       }
     });
 
@@ -316,8 +283,9 @@ describe("Intrinsic components", function() {
       //], return: ! } } }
 
       const rootElGenResult = await rootElGen.next();
-      expect(rootElGenResult.done).toBe(true);
-      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      assert(rootElGenResult.done);
+      assert(typeof rootElGenResult.value === "object");
+      {
         const rootEl = rootElGenResult.value;
         //{ tag: "div", attributes: { "id": "1" }, children: {`gen`} }
         expect(rootEl.tag).toBe("div");
@@ -328,20 +296,16 @@ describe("Intrinsic components", function() {
         //]
 
         let childrenGenResult = await childrenGen.next();
-        expect(childrenGenResult.done).toBe(false);
-        if (
-          !childrenGenResult.done &&
-          typeof childrenGenResult.value === "object"
-        ) {
+        assert(!childrenGenResult.done);
+        assert(typeof childrenGenResult.value === "object");
+        {
           const childElGen = childrenGenResult.value;
           //{`gen`| values: [], return: { tag: "div", attributes: { "id": "2" }, children: {`gen`} } }
 
           const childElGenResult = await childElGen.next();
-          expect(childElGenResult.done).toBe(true);
-          if (
-            childElGenResult.done &&
-            typeof childElGenResult.value === "object"
-          ) {
+          assert(childElGenResult.done);
+          assert(typeof childElGenResult.value === "object");
+          {
             const childEl = childElGenResult.value;
             //{ tag: "div", attributes: { "id": "2" }, children: {`gen`} }
             expect(childEl.tag).toBe("div");
@@ -353,20 +317,16 @@ describe("Intrinsic components", function() {
             //], return: ! }
 
             let grandchildrenGenResult = await grandchildrenGen.next();
-            expect(grandchildrenGenResult.done).toBe(false);
-            if (
-              !grandchildrenGenResult.done &&
-              typeof grandchildrenGenResult.value === "object"
-            ) {
+            assert(!grandchildrenGenResult.done);
+            assert(typeof grandchildrenGenResult.value === "object");
+            {
               const grandchildElGen = grandchildrenGenResult.value;
               //{`gen`| values: [], return: { tag: "div", attributes: { "id": "3" }, children: {`gen`} } }
 
               const grandchildElGenResult = await grandchildElGen.next();
-              expect(grandchildElGenResult.done).toBe(true);
-              if (
-                grandchildElGenResult.done &&
-                typeof grandchildElGenResult.value === "object"
-              ) {
+              assert(grandchildElGenResult.done);
+              assert(typeof grandchildElGenResult.value === "object");
+              {
                 const grandchildEl = grandchildElGenResult.value;
                 //{ tag: "div", attributes: { "id": "3" }, children: {`gen`}
                 expect(grandchildEl.tag).toBe("div");
@@ -377,26 +337,16 @@ describe("Intrinsic components", function() {
 
                 const grandGrandchildrenGenResult = await grandGrandchildrenGen.next();
                 expect(grandGrandchildrenGenResult.done).toBe(true);
-              } else {
-                throw new Error("failed");
               }
-            } else {
-              throw new Error("failed");
             }
 
             grandchildrenGenResult = await grandchildrenGen.next();
             expect(grandchildrenGenResult.done).toBe(true);
-          } else {
-            throw new Error("failed");
           }
-        } else {
-          throw new Error("failed");
         }
 
         childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
-      } else {
-        throw new Error("failed");
       }
     });
   });

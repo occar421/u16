@@ -3,6 +3,11 @@
 import { u } from "../";
 import { flattenChildren } from "../utils";
 
+// shim
+function assert(condition: unknown): asserts condition {
+  expect(condition).toBe(true);
+}
+
 describe("flattenChildren", function() {
   it("should do nothing with empty array", async function() {
     const childrenGen = flattenChildren([]);
@@ -186,26 +191,22 @@ describe("flattenChildren", function() {
     const childrenGen = flattenChildren(g([<C />]));
 
     let childrenGenResult = await childrenGen.next();
-    expect(childrenGenResult.done).toBe(false);
-    if (
-      !childrenGenResult.done &&
-      typeof childrenGenResult.value === "object"
-    ) {
+    assert(!childrenGenResult.done);
+    assert(typeof childrenGenResult.value === "object");
+    {
       const childElGen = childrenGenResult.value;
       //{`gen`| values: [], return: { tag: "div", attributes: {}, children: {`gen`} } }
 
       let childElGenResult = await childElGen.next();
-      expect(childElGenResult.done).toBe(false);
-      if (!childElGenResult.done) {
+      assert(!childElGenResult.done);
+      {
         const childElYieldValue = childElGenResult.value;
         expect(childElYieldValue).toStrictEqual([1]);
 
         childElGenResult = await childElGen.next([childElYieldValue[0]]);
-        expect(childElGenResult.done).toBe(true);
-        if (
-          childElGenResult.done &&
-          typeof childElGenResult.value === "object"
-        ) {
+        assert(childElGenResult.done);
+        assert(typeof childElGenResult.value === "object");
+        {
           const childEl = childElGenResult.value;
           //{ tag: "div", attributes: {}, children: {`gen`} }
           expect(childEl.tag).toBe("div");
@@ -222,17 +223,11 @@ describe("flattenChildren", function() {
 
           grandchildrenGenResult = await grandchildrenGen.next();
           expect(grandchildrenGenResult.done).toBe(true);
-        } else {
-          throw new Error("failed");
         }
-      } else {
-        throw new Error("failed");
       }
 
       childrenGenResult = await childrenGen.next();
       expect(childrenGenResult.done).toBe(true);
-    } else {
-      throw new Error("failed");
     }
   });
 });

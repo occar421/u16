@@ -47,6 +47,11 @@ const ReturnsUserDefinedElement: u.Component<{
   return yield* (<ReturnsSpanSimply foo={foo} />);
 };
 
+// shim
+function assert(condition: unknown): asserts condition {
+  expect(condition).toBe(true);
+}
+
 describe("User-defined components", function() {
   it("which returns string simply", async function() {
     const rootElGen = <ReturnsStringSimply foo="a" />;
@@ -64,8 +69,9 @@ describe("User-defined components", function() {
     //], return: ! }
 
     const rootElGenResult = await rootElGen.next();
-    expect(rootElGenResult.done).toBe(true);
-    if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+    assert(rootElGenResult.done);
+    assert(typeof rootElGenResult.value === "object");
+    {
       const rootEl = rootElGenResult.value;
       //{ tag: "div", attributes: {}, children: {`gen`} }
       expect(rootEl.tag).toBe("span");
@@ -81,8 +87,6 @@ describe("User-defined components", function() {
 
       childrenGenResult = await childrenGen.next();
       expect(childrenGenResult.done).toBe(true);
-    } else {
-      throw new Error("failed");
     }
   });
 
@@ -95,12 +99,13 @@ describe("User-defined components", function() {
     //]}
 
     let rootElGenResult = await rootElGen.next();
-    expect(rootElGenResult.done).toBe(false);
-    if (!rootElGenResult.done) {
+    assert(!rootElGenResult.done);
+    {
       expect(rootElGenResult.value).toStrictEqual(["bar"]);
       rootElGenResult = await rootElGen.next([rootElGenResult.value]);
-      expect(rootElGenResult.done).toBe(true);
-      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      assert(rootElGenResult.done);
+      assert(typeof rootElGenResult.value === "object");
+      {
         const rootEl = rootElGenResult.value;
         //{ tag: "pre", attributes: {}, children: {`gen`} }
         expect(rootEl.tag).toBe("pre");
@@ -116,11 +121,7 @@ describe("User-defined components", function() {
 
         childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
-      } else {
-        throw new Error("failed");
       }
-    } else {
-      throw new Error("failed");
     }
   });
 
@@ -133,12 +134,13 @@ describe("User-defined components", function() {
     //]}
 
     let rootElGenResult = await rootElGen.next();
-    expect(rootElGenResult.done).toBe(false);
-    if (!rootElGenResult.done) {
+    assert(!rootElGenResult.done);
+    {
       expect(rootElGenResult.value).toStrictEqual(["buz"]);
       rootElGenResult = await rootElGen.next([rootElGenResult.value]);
-      expect(rootElGenResult.done).toBe(true);
-      if (rootElGenResult.done && typeof rootElGenResult.value === "object") {
+      assert(rootElGenResult.done);
+      assert(typeof rootElGenResult.value === "object");
+      {
         const rootEl = rootElGenResult.value;
         //{ tag: "pre", attributes: {}, children: {`gen`} }
         expect(rootEl.tag).toBe("pre");
@@ -154,11 +156,7 @@ describe("User-defined components", function() {
 
         childrenGenResult = await childrenGen.next();
         expect(childrenGenResult.done).toBe(true);
-      } else {
-        throw new Error("failed");
       }
-    } else {
-      throw new Error("failed");
     }
   });
 
@@ -203,12 +201,8 @@ describe("User-defined components", function() {
       expect(elGenResultActual.value).toBe(elGenResultExpected.value);
       return;
     }
-    if (
-      typeof elGenResultExpected.value !== "object" ||
-      !("tag" in elGenResultExpected.value)
-    ) {
-      throw new Error("failed");
-    }
+    assert(typeof elGenResultExpected.value === "object");
+    assert("tag" in elGenResultExpected.value);
 
     const elActual = elGenResultActual.value;
     const elExpected = elGenResultExpected.value;
