@@ -23,6 +23,7 @@ const ReturnsPreWith1Yield: u.Component<{ foo: string }> = async function*({
 async function pseudoFetch(): Promise<string> {
   return "buz";
 }
+
 const ReturnsPreWith1AwaitYield: u.Component<{
   foo: string;
 }> = async function*({ foo }) {
@@ -191,7 +192,6 @@ describe("User-defined components", function() {
     while (!elGenResultActual.done) {
       valueActual = elGenResultActual.value;
       valueExpected = elGenResultExpected.value;
-      // @ts-ignore
       expect(valueActual).toStrictEqual(valueExpected);
       elGenResultActual = await elGenActual.next([valueActual]);
       elGenResultExpected = await elGenExpected.next([valueExpected]);
@@ -203,10 +203,15 @@ describe("User-defined components", function() {
       expect(elGenResultActual.value).toBe(elGenResultExpected.value);
       return;
     }
+    if (
+      typeof elGenResultExpected.value !== "object" ||
+      !("tag" in elGenResultExpected.value)
+    ) {
+      throw new Error("failed");
+    }
 
     const elActual = elGenResultActual.value;
-    // @ts-ignore
-    const elExpected: typeof elActual = elGenResultExpected.value;
+    const elExpected = elGenResultExpected.value;
     expect(elActual.tag).toBe(elExpected.tag);
     expect(elActual.attributes).toStrictEqual(elExpected.attributes);
 
