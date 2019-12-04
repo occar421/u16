@@ -2,21 +2,18 @@ declare namespace Internal {
   type Primitive = string | number;
 
   type ChildrenInJsx =
-    | ArrayOfChildrenInJsx
+    | ChildrenInJsx[]
     | GeneratorOfChildrenInJsx
     | JSXInternal.Primitive
     | JSXInternal.Element;
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface ArrayOfChildrenInJsx extends Array<ChildrenInJsx> {}
-  interface GeneratorOfChildrenInJsx {
+  type GeneratorOfChildrenInJsx = {
     childrenGenerator: AsyncGenerator<ChildrenInJsx>;
-  }
-
-  type Component<T extends {} = {}> = ((
-    props: T & { children?: VirtualInternal.VChildren }
-  ) => JSXInternal.Element) & {
-    name: string;
   };
+
+  interface Component<T extends {} = {}> {
+    (props: T & { children?: VirtualInternal.VChildren }): JSXInternal.Element;
+    name: string;
+  }
 }
 
 type SomethingValueAndMetrics = [unknown]; // TODO
@@ -28,13 +25,12 @@ interface HtmlCommon {
 }
 
 declare namespace VirtualInternal {
-  type VNode =
-    | {
-        tag: string;
-        attributes: { [key: string]: unknown };
-        children: VChildren;
-      }
-    | Internal.Primitive;
+  interface VElementNode {
+    tag: string;
+    attributes: { [key: string]: unknown };
+    children: VChildren;
+  }
+  type VNode = VElementNode | Internal.Primitive;
   type VChildren = AsyncGenerator<JSXInternal.Element | JSXInternal.Primitive>;
 }
 
