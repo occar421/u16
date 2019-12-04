@@ -10,14 +10,14 @@ const ReturnsStringSimply: u.Component<{ foo: string }> = async function*({
 const ReturnsSpanSimply: u.Component<{ foo: string }> = async function*({
   foo
 }) {
-  return yield* <span>{foo}</span>;
+  return yield* (<span>{foo}</span>);
 };
 
 const ReturnsPreWith1Yield: u.Component<{ foo: string }> = async function*({
   foo
 }) {
   const [a] = yield ["bar"];
-  return yield* <pre>{`${a}-${foo}`}</pre>;
+  return yield* (<pre>{`${a}-${foo}`}</pre>);
 };
 
 async function pseudoFetch(): Promise<string> {
@@ -27,23 +27,23 @@ const ReturnsPreWith1AwaitYield: u.Component<{
   foo: string;
 }> = async function*({ foo }) {
   const [a] = yield [await pseudoFetch()];
-  return yield* <pre>{`${a}-${foo}`}</pre>;
+  return yield* (<pre>{`${a}-${foo}`}</pre>);
 };
 
 const ReturnsListsOrDivWithChildren: u.Component<{
   foo: string;
 }> = async function*({ foo, children }) {
   if (children) {
-    return yield* <ul>{map(([c]) => <li>{c}</li>)(children)}</ul>;
+    return yield* (<ul>{map(([c]) => <li>{c}</li>)(children)}</ul>);
   } else {
-    return yield* <div>{foo}</div>;
+    return yield* (<div>{foo}</div>);
   }
 };
 
 const ReturnsUserDefinedElement: u.Component<{
   foo: string;
 }> = async function*({ foo }) {
-  return yield* <ReturnsSpanSimply foo={foo} />;
+  return yield* (<ReturnsSpanSimply foo={foo} />);
 };
 
 describe("User-defined components", function() {

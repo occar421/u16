@@ -180,7 +180,7 @@ describe("flattenChildren", function() {
   it("should flatten components", async function() {
     const C: Internal.Component = async function*() {
       const [n] = yield [1];
-      return yield* <div>{n}</div>;
+      return yield* (<div>{n}</div>);
     };
 
     const childrenGen = flattenChildren(g([<C />]));
